@@ -9,5 +9,8 @@
 #import <UIKit/UIKit.h>
 
 @interface ViewController : UIViewController
+@property (weak, nonatomic) IBOutlet UIView *leftContainer;
+@property (weak, nonatomic) IBOutlet UIView *rightContainer;
 
+@property (weak, nonatomic) IBOutlet UIButton *draggableButton;
 @end

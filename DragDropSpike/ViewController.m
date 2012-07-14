@@ -13,6 +13,9 @@
 @end
 
 @implementation ViewController
+@synthesize leftContainer;
+@synthesize rightContainer;
+@synthesize draggableButton;
 
 - (void)viewDidLoad
 {
@@ -22,6 +25,9 @@
 
 - (void)viewDidUnload
 {
+    [self setLeftContainer:nil];
+    [self setRightContainer:nil];
+    [self setDraggableButton:nil];
     [super viewDidUnload];
     // Release any retained subviews of the main view.
 }
