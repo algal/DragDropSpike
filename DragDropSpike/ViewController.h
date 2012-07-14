@@ -13,7 +13,7 @@
 @interface ViewController : UIViewController <MCKDnDDonorProtocol, MCKDnDAbsorberProtocol>
 @property (weak, nonatomic) IBOutlet UIView *leftContainer;
 @property (weak, nonatomic) IBOutlet UIView *rightContainer;
-@property (weak, nonatomic) IBOutlet UIButton *draggableButton;
+@property (weak, nonatomic) IBOutlet UIView *draggableItem;
 
 #pragma mark  MCKDnDDonorProtocol delegate
 

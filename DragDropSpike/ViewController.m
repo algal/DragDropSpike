@@ -18,7 +18,7 @@
 @implementation ViewController
 @synthesize leftContainer;
 @synthesize rightContainer;
-@synthesize draggableButton;
+@synthesize draggableItem;
 
 @synthesize draggableViewInitialOrigin;
 
@@ -26,14 +26,14 @@
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
-  [self registerDraggableView:draggableButton];
+  [self registerDraggableView:draggableItem];
 }
 
 - (void)viewDidUnload
 {
     [self setLeftContainer:nil];
     [self setRightContainer:nil];
-    [self setDraggableButton:nil];
+    [self setDraggableItem:nil];
     [super viewDidUnload];
     // Release any retained subviews of the main view.
 }
@@ -59,7 +59,7 @@
   // Save its original position, for slide-back if the donor must reclaim it.
   // (This is probably so common a requirement we want it to be generic
   // to the DnD framework.)
-  self.draggableViewInitialOrigin = self.draggableButton.frame.origin;
+  self.draggableViewInitialOrigin = self.draggableItem.frame.origin;
   // Q: do we also need to cache the donating view (in case it's not self)?
 
   // Attach a UIGestureRecognizer to the draggableView to make it draggable.
@@ -67,9 +67,7 @@
   [[UIGestureRecognizer alloc] initWithTarget:self
                                        action:@selector(handleDraggablePan:)];
   
-  
-  
-  
+  [self.draggableItem addGestureRecognizer:panGestureRecognizer];
 }
 
 -(void)animatePickingUpView:(UIView*)v {
