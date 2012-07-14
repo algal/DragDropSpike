@@ -12,15 +12,23 @@
 #import "MCKDragDropProtocol.h"
 
 @interface ViewController ()
-@property (assign) CGPoint draggableViewInitialOrigin;
+
+@property (assign) CGPoint initialDraggableViewOrigin;
+
+@property (assign) CGSize initialShadowOffset;
+@property (assign) CGFloat initialShadowRadius;
+@property (assign) CGFloat initialShadowOpacity;
+
 @end
 
+
 @implementation ViewController
+
 @synthesize leftContainer;
 @synthesize rightContainer;
 @synthesize draggableItem;
 
-@synthesize draggableViewInitialOrigin;
+@synthesize initialDraggableViewOrigin;
 
 - (void)viewDidLoad
 {
@@ -59,7 +67,7 @@
   // Save its original position, for slide-back if the donor must reclaim it.
   // (This is probably so common a requirement we want it to be generic
   // to the DnD framework.)
-  self.draggableViewInitialOrigin = self.draggableItem.frame.origin;
+  self.initialDraggableViewOrigin = self.draggableItem.frame.origin;
   // Q: do we also need to cache the donating view (in case it's not self)?
 
   // Attach a UIGestureRecognizer to the draggableView to make it draggable.
@@ -75,18 +83,25 @@
 
 -(void)animatePickingUpView:(UIView*)v {
   PSLogInfo(@"");
+  // cache old values
+  self.initialShadowOffset  = v.layer.shadowOffset;
+  self.initialShadowRadius  = v.layer.shadowRadius;
+  self.initialShadowOpacity = v.layer.shadowOpacity;
+  
   // apply a generic pickup animation
   v.layer.shadowOffset = CGSizeMake(0, 10);
   v.layer.shadowRadius = 25;
   v.layer.shadowOpacity = 1.0;
+  v.backgroundColor = [UIColor greenColor]; // for debugging
 }
 
 -(void)animateDroppingView:(UIView*)v {
   PSLogInfo(@"");
   // apply a generic drop animation
-  v.layer.shadowOffset = CGSizeMake(0, 10);
-  v.layer.shadowRadius = 25;
-  v.layer.shadowOpacity = 1.0;
+  v.layer.shadowOffset  = self.initialShadowOffset;
+  v.layer.shadowRadius  = self.initialShadowRadius;
+  v.layer.shadowOpacity = self.initialShadowOpacity;
+  v.backgroundColor = [UIColor whiteColor];
 }
 
 -(void)handleDraggablePan:(UIPanGestureRecognizer*)recognizer
@@ -161,7 +176,7 @@
 {
   PSLogInfo(@"");
   // clear the saved information about its original position
-  self.draggableViewInitialOrigin = CGPointZero;
+  self.initialDraggableViewOrigin = CGPointZero;
 }
 
 -(void) donorView:(UIView*)donor reclaimDraggingView:(UIView*)draggingSubview
