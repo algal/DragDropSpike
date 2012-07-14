@@ -32,6 +32,7 @@
 		5EB7E71115B1CB9F0035A1DC /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		5EB7E71215B1CB9F0035A1DC /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		5EB7E71915B1D0910035A1DC /* MCKDragDropProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MCKDragDropProtocol.h; sourceTree = "<group>"; };
+		5EB7E71E15B1D8C30035A1DC /* PSLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PSLog.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +79,7 @@
 		5EB7E70215B1CB9F0035A1DC /* DragDropSpike */ = {
 			isa = PBXGroup;
 			children = (
+				5EB7E71E15B1D8C30035A1DC /* PSLog.h */,
 				5EB7E71915B1D0910035A1DC /* MCKDragDropProtocol.h */,
 				5EB7E70B15B1CB9F0035A1DC /* AppDelegate.h */,
 				5EB7E70C15B1CB9F0035A1DC /* AppDelegate.m */,
@@ -283,6 +285,7 @@
 				5EB7E71815B1CB9F0035A1DC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

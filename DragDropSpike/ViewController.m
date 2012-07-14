@@ -37,4 +37,25 @@
   return YES;
 }
 
+
+#pragma mark  MCKDnDDonorProtocol delegate
+
+-(void) donorView:(UIView*)donor didBeginDraggingView:(UIView*)draggingSubview {}
+-(void) donorView:(UIView*)donor willDonateDraggingView:(UIView*)draggingSubview {}
+-(void) donorView:(UIView*)donor didDonateDraggingView:(UIView*)draggingSubview {}
+-(void) donorView:(UIView*)donor reclaimDraggingView:(UIView*)draggingSubview {}
+
+#pragma mark MCKDnDAbsorberProtocol delegate
+
+-(BOOL) absorberView:(UIView*)absorber canAbsorbDraggingView:(UIView*)draggingSubview
+{
+  return YES;
+}
+
+-(void) absorberView:(UIView*)absorber absorbDraggingView:(UIView*)draggingSubview
+{
+  return;
+}
+
+
 @end

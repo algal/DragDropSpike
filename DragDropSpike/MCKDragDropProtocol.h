@@ -37,7 +37,7 @@
  animate the dropped view back to its original position and restore the state 
  of the donor view to its value before the draggingSubview was picked up.
  */
--(void) donorView:(UIView*)donor reclaimDraggingView:(UIView*)draggingSubview
+-(void) donorView:(UIView*)donor reclaimDraggingView:(UIView*)draggingSubview;
 @end
 
 @protocol MCKDnDAbsorberProtocol <NSObject>

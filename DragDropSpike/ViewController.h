@@ -15,13 +15,10 @@
 
 #pragma mark  MCKDnDDonorProtocol delegate
 
-// when view is picked up
 -(void) donorView:(UIView*)donor didBeginDraggingView:(UIView*)draggingSubview;
-// if view is absorbed by dropped-on view.
 -(void) donorView:(UIView*)donor willDonateDraggingView:(UIView*)draggingSubview;
 -(void) donorView:(UIView*)donor didDonateDraggingView:(UIView*)draggingSubview;
-// if view is rejected by the dropped-on view
--(void) donorView:(UIView*)donor didReclaimDraggingView:(UIView*)draggingSubview;
+-(void) donorView:(UIView*)donor reclaimDraggingView:(UIView*)draggingSubview;
 
 #pragma mark MCKDnDAbsorberProtocol delegate
 
