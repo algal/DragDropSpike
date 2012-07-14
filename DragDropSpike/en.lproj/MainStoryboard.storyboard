@@ -15,7 +15,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" id="19Y-3V-b3J">
-                                <rect key="frame" x="57" y="226" width="468" height="179"/>
+                                <rect key="frame" x="20" y="226" width="468" height="179"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <subviews>
                                     <label opaque="NO" clipsSubviews="YES" contentMode="left" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="Wgu-bw-1g9">
@@ -30,7 +30,7 @@
                                 <color key="backgroundColor" red="0.91764706373214722" green="0.44313725829124451" blue="0.14509804546833038" alpha="1" colorSpace="calibratedRGB"/>
                             </view>
                             <view contentMode="scaleToFill" id="PHR-YU-cfX">
-                                <rect key="frame" x="556" y="226" width="468" height="179"/>
+                                <rect key="frame" x="536" y="226" width="468" height="179"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" red="0.71764705880000002" green="0.23921568630000001" blue="0.078431372550000003" alpha="1" colorSpace="calibratedRGB"/>
                             </view>
@@ -52,7 +52,7 @@
         <class className="ViewController" superclassName="UIViewController">
             <source key="sourceIdentifier" type="project" relativePath="./Classes/ViewController.h"/>
             <relationships>
-                <relationship kind="outlet" name="draggableButton" candidateClass="UIView"/>
+                <relationship kind="outlet" name="draggableItem" candidateClass="UIView"/>
                 <relationship kind="outlet" name="leftContainer" candidateClass="UIView"/>
                 <relationship kind="outlet" name="rightContainer" candidateClass="UIView"/>
             </relationships>

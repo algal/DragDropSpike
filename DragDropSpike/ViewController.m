@@ -64,10 +64,13 @@
 
   // Attach a UIGestureRecognizer to the draggableView to make it draggable.
   UIGestureRecognizer * panGestureRecognizer =
-  [[UIGestureRecognizer alloc] initWithTarget:self
+  [[UIPanGestureRecognizer alloc] initWithTarget:self
                                        action:@selector(handleDraggablePan:)];
   
   [self.draggableItem addGestureRecognizer:panGestureRecognizer];
+
+//  UIGestureRecognizer * tapRecognizer =
+//  [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tap:)];
 }
 
 -(void)animatePickingUpView:(UIView*)v {
@@ -88,8 +91,6 @@
 
 -(void)handleDraggablePan:(UIPanGestureRecognizer*)recognizer
 {
-  PSLogInfo(@"");
-
   UIView * absorberView;
   UIView * donorView;
   NSObject <MCKDnDAbsorberProtocol> * absorberDelegate;
@@ -105,15 +106,16 @@
 
   // we just released the view
   if (recognizer.state == UIGestureRecognizerStatePossible) {
-    PSLogInfo(@"possible drag");
+    PSLogInfo(@"UIGestureRecognizerStatePossible => possible drag");
   }
   // we just picked up the view
   else if (recognizer.state == UIGestureRecognizerStateBegan) {
-    PSLogInfo(@"start of drag: pickup");
+    PSLogInfo(@"UIGestureRecognizerStateBegan => start of drag: pickup");
     [self animatePickingUpView:recognizer.view];
   }
   // we just dropped the view
   else if (recognizer.state == UIGestureRecognizerStateEnded) {
+    PSLogInfo(@"UIGestureRecognizerStateEnded => end of drag: drop");
     // will the absorber accept the dropped view?
     UIView * draggableView = recognizer.view;
     const BOOL dropWasReceived = [absorberDelegate absorberView:absorberView
