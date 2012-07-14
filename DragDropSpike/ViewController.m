@@ -6,10 +6,13 @@
 //  Copyright (c) 2012 McKinsey. All rights reserved.
 //
 
+#import <QuartzCore/QuartzCore.h>
+
 #import "ViewController.h"
+#import "MCKDragDropProtocol.h"
 
 @interface ViewController ()
-
+@property (assign) CGPoint draggableViewInitialOrigin;
 @end
 
 @implementation ViewController
@@ -17,10 +20,13 @@
 @synthesize rightContainer;
 @synthesize draggableButton;
 
+@synthesize draggableViewInitialOrigin;
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
+  [self registerDraggableView:draggableButton];
 }
 
 - (void)viewDidUnload
@@ -37,23 +43,145 @@
   return YES;
 }
 
+#pragma mark DnD helpers
+
+/*
+ STAGE 0.
+ 
+ Cache info and do any setup necessary to support the view being dragged later.
+ 
+ This is now implemented in this VC, but maybe this should be part of the DnD
+ framework.
+ */
+-(void) registerDraggableView:(UIView*)descendantView
+{
+  PSLogInfo(@"");
+  // Save its original position, for slide-back if the donor must reclaim it.
+  // (This is probably so common a requirement we want it to be generic
+  // to the DnD framework.)
+  self.draggableViewInitialOrigin = self.draggableButton.frame.origin;
+  // Q: do we also need to cache the donating view (in case it's not self)?
+
+  // Attach a UIGestureRecognizer to the draggableView to make it draggable.
+  UIGestureRecognizer * panGestureRecognizer =
+  [[UIGestureRecognizer alloc] initWithTarget:self
+                                       action:@selector(handleDraggablePan:)];
+  
+  
+  
+  
+}
+
+-(void)animatePickingUpView:(UIView*)v {
+  PSLogInfo(@"");
+  // apply a generic pickup animation
+  v.layer.shadowOffset = CGSizeMake(0, 10);
+  v.layer.shadowRadius = 25;
+  v.layer.shadowOpacity = 1.0;
+}
+
+-(void)animateDroppingView:(UIView*)v {
+  PSLogInfo(@"");
+  // apply a generic drop animation
+  v.layer.shadowOffset = CGSizeMake(0, 10);
+  v.layer.shadowRadius = 25;
+  v.layer.shadowOpacity = 1.0;
+}
+
+-(void)handleDraggablePan:(UIPanGestureRecognizer*)recognizer
+{
+  PSLogInfo(@"");
+
+  UIView * absorberView;
+  UIView * donorView;
+  NSObject <MCKDnDAbsorberProtocol> * absorberDelegate;
+  NSObject <MCKDnDDonorProtocol>    * donorDelegate;
+  
+  // keep moving the view to follow the finger's translational motion
+  CGPoint translation = [recognizer translationInView:recognizer.view.superview];
+  recognizer.view.center = CGPointMake(recognizer.view.center.x + translation.x,
+                                       recognizer.view.center.y + translation.y);
+  [recognizer setTranslation:CGPointMake(0, 0) inView:recognizer.view.superview];
+
+  // (state changes to pan recognizer represent pickup/drop events)
+
+  // we just released the view
+  if (recognizer.state == UIGestureRecognizerStatePossible) {
+    PSLogInfo(@"possible drag");
+  }
+  // we just picked up the view
+  else if (recognizer.state == UIGestureRecognizerStateBegan) {
+    PSLogInfo(@"start of drag: pickup");
+    [self animatePickingUpView:recognizer.view];
+  }
+  // we just dropped the view
+  else if (recognizer.state == UIGestureRecognizerStateEnded) {
+    // will the absorber accept the dropped view?
+    UIView * draggableView = recognizer.view;
+    const BOOL dropWasReceived = [absorberDelegate absorberView:absorberView
+                                          canAbsorbDraggingView:draggableView];
+    if ( dropWasReceived ) {
+      PSLogInfo(@"absorber accepted the drop");
+      [donorDelegate donorView:donorView willDonateDraggingView:draggableView];
+      [absorberDelegate absorberView:absorberView absorbDraggingView:draggableView];
+      [donorDelegate donorView:donorView didDonateDraggingView:draggableView];
+    } 
+    else {
+      [donorDelegate donorView:donorView reclaimDraggingView:draggableView];
+    }
+  }
+}
 
 #pragma mark  MCKDnDDonorProtocol delegate
 
--(void) donorView:(UIView*)donor didBeginDraggingView:(UIView*)draggingSubview {}
--(void) donorView:(UIView*)donor willDonateDraggingView:(UIView*)draggingSubview {}
--(void) donorView:(UIView*)donor didDonateDraggingView:(UIView*)draggingSubview {}
--(void) donorView:(UIView*)donor reclaimDraggingView:(UIView*)draggingSubview {}
+/*
+ STAGE 1.
+ 
+ The donor could apply its own *specialized* logic here to modify its own 
+ appearance or state to reflect the fact that part of it has been picked up 
+ and/or is being dragged away. For instance,
+ 
+ This could also be the place to apply *generic* logic, that all donors would
+ want, such as applying a "visual pickup" animation. However, perhaps such
+ generic logic should be handled by the DnD framework.
+ */
+-(void) donorView:(UIView*)donor didBeginDraggingView:(UIView*)draggingSubview
+{
+  PSLogInfo(@"");
+}
+
+/* STAGE 3 */
+-(void) donorView:(UIView*)donor willDonateDraggingView:(UIView*)draggingSubview
+{
+  PSLogInfo(@"");
+}
+
+/* STAGE 5 */
+-(void) donorView:(UIView*)donor didDonateDraggingView:(UIView*)draggingSubview
+{
+  PSLogInfo(@"");
+  // clear the saved information about its original position
+  self.draggableViewInitialOrigin = CGPointZero;
+}
+
+-(void) donorView:(UIView*)donor reclaimDraggingView:(UIView*)draggingSubview
+{
+  PSLogInfo(@"");
+}
 
 #pragma mark MCKDnDAbsorberProtocol delegate
 
+/* STAGE 2. */
 -(BOOL) absorberView:(UIView*)absorber canAbsorbDraggingView:(UIView*)draggingSubview
 {
+  PSLogInfo(@"");
   return YES;
 }
 
+/* STAGE 4 */
 -(void) absorberView:(UIView*)absorber absorbDraggingView:(UIView*)draggingSubview
 {
+  PSLogInfo(@"");
   return;
 }
 

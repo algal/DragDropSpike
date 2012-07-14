@@ -16,19 +16,22 @@
 
 
 @protocol MCKDnDDonorProtocol <NSObject>
+
 // 1. User picks up an object within Donor's view hierarchy (VH).
 /** Tells delegate the user has picked up draggingSubview of donor */
 -(void) donorView:(UIView*)donor didBeginDraggingView:(UIView*)draggingSubview;
 
 // 2. Absorber view decides if it accepts or rejects the drop
 
-// 3a. Donor yields the draggingSubview to the Absorber.
+// A.3 Donor yields the draggingSubview to the Absorber.
 /** Tells delegate draggingSubview will soon be 'donated' to absorber view */
 -(void) donorView:(UIView*)donor willDonateDraggingView:(UIView*)draggingSubview;
+
+// A.5 Donor notified Absorber has received the view
 /** Tells delegate draggingSubview has just been 'donated' to absorber view */
 -(void) donorView:(UIView*)donor didDonateDraggingView:(UIView*)draggingSubview;
 
-// 3b. Donor re-integrates draggingSubview, which Absorber rejected
+// B.3. Donor re-integrates draggingSubview, which Absorber rejected
 /**
   Reclaim draggingSubview into donorView's view hierarchy.
   @param donor
@@ -40,8 +43,11 @@
 -(void) donorView:(UIView*)donor reclaimDraggingView:(UIView*)draggingSubview;
 @end
 
+
 @protocol MCKDnDAbsorberProtocol <NSObject>
-/** 
+
+// 2. Absorber view decides if it accepts or rejects the drop (-> A.3 or B.3)
+/**
   Called to determine if absorber will accept the drop of draggingSubview.
  @param absorber
  @param draggingSubview
@@ -51,6 +57,7 @@
  */
 -(BOOL) absorberView:(UIView*)absorber canAbsorbDraggingView:(UIView*)draggingSubview;
 
+// A.4 Absorber receives the donated view
 /**
  Absorb draggingSubview into absorber's view hierarchy.
  @param absorber

@@ -8,7 +8,9 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ViewController : UIViewController
+#import "MCKDragDropProtocol.h"
+
+@interface ViewController : UIViewController <MCKDnDDonorProtocol, MCKDnDAbsorberProtocol>
 @property (weak, nonatomic) IBOutlet UIView *leftContainer;
 @property (weak, nonatomic) IBOutlet UIView *rightContainer;
 @property (weak, nonatomic) IBOutlet UIButton *draggableButton;
