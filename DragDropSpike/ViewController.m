@@ -180,13 +180,21 @@
   self.initialDraggableViewOrigin = CGPointZero;
 }
 
+/*
+  Should this slide-back animation be the responsibility of the DnD framework or the donor?
+ */
 -(void) donorView:(UIView*)donor reclaimDraggingView:(UIView*)draggingSubview
 {
   PSLogInfo(@"");
   CGRect restoredFrame = draggingSubview.frame;
   restoredFrame.origin = self.initialDraggableViewOrigin;
-  draggingSubview.frame = restoredFrame;
-  [draggingSubview.superview setNeedsDisplay];
+  [UIView animateWithDuration:0.3f
+                   animations:^{
+                     draggingSubview.frame = restoredFrame;
+                   }
+   completion:^(BOOL finished) {
+     [self animateDroppingView:draggingSubview];
+   }];
 }
 
 #pragma mark MCKDnDAbsorberProtocol delegate
