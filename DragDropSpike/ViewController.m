@@ -192,9 +192,9 @@
                    animations:^{
                      draggingSubview.frame = restoredFrame;
                    }
-   completion:^(BOOL finished) {
-     [self animateDroppingView:draggingSubview];
-   }];
+                   completion:^(BOOL finished) {
+                     [self animateDroppingView:draggingSubview];
+                   }];
 }
 
 #pragma mark MCKDnDAbsorberProtocol delegate
@@ -213,12 +213,10 @@
 -(void) absorberView:(UIView*)absorber absorbDraggingView:(UIView*)draggingSubview
 {
   PSLogInfo(@"");
-  PSLogInfo(@"detaching dropped view from its donor VH");
-  CGRect newFrame = [absorber convertRect:draggingSubview.frame
-                                 fromView:draggingSubview.superview];
-  [draggingSubview removeFromSuperview];
-  draggingSubview.frame = newFrame;
-  PSLogInfo(@"adding dropped view into absorber VH");
+  UIView *oldSuperview = draggingSubview.superview;
+  PSLogInfo(@"moving dropped view into absorber VH");
+  draggingSubview.frame = [absorber convertRect:draggingSubview.frame
+                                       fromView:oldSuperview];
   [absorber addSubview:draggingSubview];
   return;
 }
