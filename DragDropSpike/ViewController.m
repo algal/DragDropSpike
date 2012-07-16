@@ -138,6 +138,7 @@
     if ( dropWasReceived ) {
       PSLogInfo(@"absorber accepted the drop");
       [donorDelegate donorView:donorView willDonateDraggingView:draggableView];
+      [self animateDroppingView:draggableView];
       [absorberDelegate absorberView:absorberView absorbDraggingView:draggableView];
       [donorDelegate donorView:donorView didDonateDraggingView:draggableView];
     } 
