@@ -213,6 +213,13 @@
 -(void) absorberView:(UIView*)absorber absorbDraggingView:(UIView*)draggingSubview
 {
   PSLogInfo(@"");
+  PSLogInfo(@"detaching dropped view from its donor VH");
+  CGRect newFrame = [absorber convertRect:draggingSubview.frame
+                                 fromView:draggingSubview.superview];
+  [draggingSubview removeFromSuperview];
+  draggingSubview.frame = newFrame;
+  PSLogInfo(@"adding dropped view into absorber VH");
+  [absorber addSubview:draggingSubview];
   return;
 }
 
