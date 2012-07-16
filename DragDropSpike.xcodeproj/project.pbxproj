@@ -15,6 +15,11 @@
 		5EB7E70D15B1CB9F0035A1DC /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 5EB7E70C15B1CB9F0035A1DC /* AppDelegate.m */; };
 		5EB7E71015B1CB9F0035A1DC /* MainStoryboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5EB7E70E15B1CB9F0035A1DC /* MainStoryboard.storyboard */; };
 		5EB7E71315B1CB9F0035A1DC /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5EB7E71215B1CB9F0035A1DC /* ViewController.m */; };
+		5EDEE55515B43CA8004C46B9 /* DCCrossHairView.m in Sources */ = {isa = PBXBuildFile; fileRef = 5EDEE54D15B43CA8004C46B9 /* DCCrossHairView.m */; settings = {COMPILER_FLAGS = " -fno-objc-arc"; }; };
+		5EDEE55615B43CA8004C46B9 /* DCFrameView.m in Sources */ = {isa = PBXBuildFile; fileRef = 5EDEE54F15B43CA8004C46B9 /* DCFrameView.m */; settings = {COMPILER_FLAGS = " -fno-objc-arc"; }; };
+		5EDEE55715B43CA8004C46B9 /* DCIntrospect.m in Sources */ = {isa = PBXBuildFile; fileRef = 5EDEE55115B43CA8004C46B9 /* DCIntrospect.m */; settings = {COMPILER_FLAGS = " -fno-objc-arc"; }; };
+		5EDEE55815B43CA8004C46B9 /* DCStatusBarOverlay.m in Sources */ = {isa = PBXBuildFile; fileRef = 5EDEE55415B43CA8004C46B9 /* DCStatusBarOverlay.m */; settings = {COMPILER_FLAGS = " -fno-objc-arc"; }; };
+		5EDEE55B15B44A48004C46B9 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5EDEE55A15B44A48004C46B9 /* QuartzCore.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +38,16 @@
 		5EB7E71215B1CB9F0035A1DC /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		5EB7E71915B1D0910035A1DC /* MCKDragDropProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MCKDragDropProtocol.h; sourceTree = "<group>"; };
 		5EB7E71E15B1D8C30035A1DC /* PSLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PSLog.h; sourceTree = "<group>"; };
+		5EDEE54C15B43CA8004C46B9 /* DCCrossHairView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DCCrossHairView.h; sourceTree = "<group>"; };
+		5EDEE54D15B43CA8004C46B9 /* DCCrossHairView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DCCrossHairView.m; sourceTree = "<group>"; };
+		5EDEE54E15B43CA8004C46B9 /* DCFrameView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DCFrameView.h; sourceTree = "<group>"; };
+		5EDEE54F15B43CA8004C46B9 /* DCFrameView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DCFrameView.m; sourceTree = "<group>"; };
+		5EDEE55015B43CA8004C46B9 /* DCIntrospect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DCIntrospect.h; sourceTree = "<group>"; };
+		5EDEE55115B43CA8004C46B9 /* DCIntrospect.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DCIntrospect.m; sourceTree = "<group>"; };
+		5EDEE55215B43CA8004C46B9 /* DCIntrospectSettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DCIntrospectSettings.h; sourceTree = "<group>"; };
+		5EDEE55315B43CA8004C46B9 /* DCStatusBarOverlay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DCStatusBarOverlay.h; sourceTree = "<group>"; };
+		5EDEE55415B43CA8004C46B9 /* DCStatusBarOverlay.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DCStatusBarOverlay.m; sourceTree = "<group>"; };
+		5EDEE55A15B44A48004C46B9 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -40,6 +55,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5EDEE55B15B44A48004C46B9 /* QuartzCore.framework in Frameworks */,
 				5EB7E6FD15B1CB9F0035A1DC /* UIKit.framework in Frameworks */,
 				5EB7E6FF15B1CB9F0035A1DC /* Foundation.framework in Frameworks */,
 				5EB7E70115B1CB9F0035A1DC /* CoreGraphics.framework in Frameworks */,
@@ -52,6 +68,7 @@
 		5EB7E6ED15B1CB9F0035A1DC = {
 			isa = PBXGroup;
 			children = (
+				5EDEE54A15B43C97004C46B9 /* DCIntrospect */,
 				5EB7E70215B1CB9F0035A1DC /* DragDropSpike */,
 				5EB7E6FB15B1CB9F0035A1DC /* Frameworks */,
 				5EB7E6F915B1CB9F0035A1DC /* Products */,
@@ -69,6 +86,7 @@
 		5EB7E6FB15B1CB9F0035A1DC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				5EDEE55A15B44A48004C46B9 /* QuartzCore.framework */,
 				5EB7E6FC15B1CB9F0035A1DC /* UIKit.framework */,
 				5EB7E6FE15B1CB9F0035A1DC /* Foundation.framework */,
 				5EB7E70015B1CB9F0035A1DC /* CoreGraphics.framework */,
@@ -100,6 +118,22 @@
 				5EB7E70A15B1CB9F0035A1DC /* DragDropSpike-Prefix.pch */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		5EDEE54A15B43C97004C46B9 /* DCIntrospect */ = {
+			isa = PBXGroup;
+			children = (
+				5EDEE54C15B43CA8004C46B9 /* DCCrossHairView.h */,
+				5EDEE54D15B43CA8004C46B9 /* DCCrossHairView.m */,
+				5EDEE54E15B43CA8004C46B9 /* DCFrameView.h */,
+				5EDEE54F15B43CA8004C46B9 /* DCFrameView.m */,
+				5EDEE55015B43CA8004C46B9 /* DCIntrospect.h */,
+				5EDEE55115B43CA8004C46B9 /* DCIntrospect.m */,
+				5EDEE55215B43CA8004C46B9 /* DCIntrospectSettings.h */,
+				5EDEE55315B43CA8004C46B9 /* DCStatusBarOverlay.h */,
+				5EDEE55415B43CA8004C46B9 /* DCStatusBarOverlay.m */,
+			);
+			name = DCIntrospect;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -168,6 +202,10 @@
 				5EB7E70915B1CB9F0035A1DC /* main.m in Sources */,
 				5EB7E70D15B1CB9F0035A1DC /* AppDelegate.m in Sources */,
 				5EB7E71315B1CB9F0035A1DC /* ViewController.m in Sources */,
+				5EDEE55515B43CA8004C46B9 /* DCCrossHairView.m in Sources */,
+				5EDEE55615B43CA8004C46B9 /* DCFrameView.m in Sources */,
+				5EDEE55715B43CA8004C46B9 /* DCIntrospect.m in Sources */,
+				5EDEE55815B43CA8004C46B9 /* DCStatusBarOverlay.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

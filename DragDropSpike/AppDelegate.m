@@ -8,11 +8,27 @@
 
 #import "AppDelegate.h"
 
+#ifdef DEBUG
+  #import "DCIntrospect.h"
+#endif
+
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     // Override point for customization after application launch.
+  
+  // enable DCIntrospect for debug builds
+#ifdef DEBUG
+  [[DCIntrospect sharedIntrospector] start];
+  
+//  // define gesture recognizer for invoking DCIntrospect on the device
+//  UIPanGestureRecognizer * introspectGesture = [[UIPanGestureRecognizer alloc] init];
+//  introspectGesture.minimumNumberOfTouches = 3;
+//  introspectGesture.maximumNumberOfTouches = 3;
+//  [[DCIntrospect sharedIntrospector] setInvokeGestureRecognizer:introspectGesture];
+#endif
+
     return YES;
 }
 							
