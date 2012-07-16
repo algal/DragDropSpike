@@ -14,8 +14,6 @@
 
 @interface ViewController ()
 
-@property (assign) CGPoint initialDraggableViewOrigin;
-
 @property (assign) CGSize initialShadowOffset;
 @property (assign) CGFloat initialShadowRadius;
 @property (assign) CGFloat initialShadowOpacity;
@@ -28,8 +26,6 @@
 @synthesize leftContainer;
 @synthesize rightContainer;
 @synthesize draggableItem;
-
-@synthesize initialDraggableViewOrigin;
 
 - (void)viewDidLoad
 {
@@ -52,19 +48,9 @@
   return YES;
 }
 
--(void)handleDraggablePan:(UIPanGestureRecognizer*)theRecognizer
-{
-  UIView * donorView = self.leftContainer;
-  UIView * absorberView = self.rightContainer;
-  NSObject <MCKDnDAbsorberProtocol> * absorberDelegate = self;
-  NSObject <MCKDnDDonorProtocol>    * donorDelegate = self;
-  
-  MCKPanGestureRecognizer * recognizer = (MCKPanGestureRecognizer*)theRecognizer;
 
-  CGPoint recognizerViewOrigin = recognizer.view.frame.origin;
-  PSLogInfo(@"started. recognizer.view.frame.origin={%f,%f} and state=%u",
-            recognizerViewOrigin.x,recognizerViewOrigin.y,recognizer.state);
-  
+/*
+ 
   // should compute (and cache?) donorView at pick-up time
 
   // should assign (potential) absorberView at drop time
@@ -72,18 +58,24 @@
   // so how to remember donorView?
   // => Q: does this mean this info needs to be cached in a drag session object?
   
-  // move the view to follow the finger's translational motion
-  CGPoint translation = [recognizer translationInView:recognizer.view.superview];
-  recognizer.view.center = CGPointMake(recognizer.view.center.x + translation.x,
-                                       recognizer.view.center.y + translation.y);
-  [recognizer setTranslation:CGPointMake(0, 0) inView:recognizer.view.superview];
+ */
+-(void)handleDraggablePan:(UIPanGestureRecognizer*)theRecognizer
+{
+  MCKPanGestureRecognizer * recognizer = (MCKPanGestureRecognizer*)theRecognizer;
   
+  UIView * donorView = self.leftContainer;
+  UIView * absorberView = self.rightContainer;
+  NSObject <MCKDnDAbsorberProtocol> * absorberDelegate = self;
+  NSObject <MCKDnDDonorProtocol>    * donorDelegate = self;
+
   if (recognizer.state == UIGestureRecognizerStatePossible) {
     PSLogInfo(@"state = %u. Possible",recognizer.state);
   }
   else if (recognizer.state == UIGestureRecognizerStateBegan) {
     // PICKUP EVENT
     PSLogInfo(@"state = %u. StateBegan => pickup",recognizer.state);
+    recognizer.initialViewFrameOrigin = recognizer.view.frame.origin;
+    PSLogInfo(@"caching initial view center of %@",NSStringFromCGPoint(recognizer.initialViewFrameOrigin));
     // find the just-pickup-up object's Donor's delegate
     donorView = [[self class] donorOfView:recognizer.view];
      
@@ -92,6 +84,13 @@
   }
   else if (recognizer.state == UIGestureRecognizerStateChanged) {
     PSLogInfo(@"state = %u. StateChanged => movement",recognizer.state);
+    
+    // move the view to follow the finger's translational motion
+    CGPoint translation = [recognizer translationInView:recognizer.view.superview];
+    recognizer.view.center = CGPointMake(recognizer.view.center.x + translation.x,
+                                         recognizer.view.center.y + translation.y);
+    [recognizer setTranslation:CGPointMake(0, 0) inView:recognizer.view.superview];
+    
   }
   else if (recognizer.state == UIGestureRecognizerStateEnded) {
     // DROP EVENT
@@ -110,8 +109,23 @@
     }
     else {
       PSLogInfo(@"absorber rejected the drop");
+      // do a slide-back animation
+      UIView * draggingSubview = recognizer.view;
+      CGRect restoredFrame = draggingSubview.frame;
+      restoredFrame.origin = recognizer.initialViewFrameOrigin;
+      [UIView animateWithDuration:0.3f
+                       animations:^{
+                         draggingSubview.frame = restoredFrame;
+                       }
+                       completion:^(BOOL finished) {
+                         [self animateDroppingView:draggingSubview];
+                       }];
+
       [donorDelegate donorView:donorView reclaimDraggingView:draggableView];
     }
+  }
+  else {
+    PSLogInfo(@"state unrecognized");
   }
 }
 
@@ -144,11 +158,6 @@
 -(void) registerDraggableView:(UIView*)descendantView
 {
   PSLogInfo(@"");
-  // Save its original position, for slide-back if the donor must reclaim it.
-  // (This is probably so common a requirement we want it to be generic
-  // to the DnD framework.)
-  self.initialDraggableViewOrigin = self.draggableItem.frame.origin;
-  PSLogInfo(@"initial origin of draggable view = %@",NSStringFromCGPoint(self.initialDraggableViewOrigin));
   // Q: do we also need to cache the donating view (in case it's not self)?
   
   // Attach a UIGestureRecognizer to the draggableView to make it draggable.
@@ -214,7 +223,6 @@
 {
   PSLogInfo(@"");
   // clear the saved information about its original position
-  self.initialDraggableViewOrigin = CGPointZero;
 }
 
 /*
@@ -223,15 +231,6 @@
 -(void) donorView:(UIView*)donor reclaimDraggingView:(UIView*)draggingSubview
 {
   PSLogInfo(@"");
-  CGRect restoredFrame = draggingSubview.frame;
-  restoredFrame.origin = self.initialDraggableViewOrigin;
-  [UIView animateWithDuration:0.3f
-                   animations:^{
-                     draggingSubview.frame = restoredFrame;
-                   }
-                   completion:^(BOOL finished) {
-                     [self animateDroppingView:draggingSubview];
-                   }];
 }
 
 #pragma mark MCKDnDAbsorberProtocol delegate

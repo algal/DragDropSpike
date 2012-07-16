@@ -9,5 +9,5 @@
 #import "MCKPanGestureRecognizer.h"
 
 @implementation MCKPanGestureRecognizer
-@synthesize initialViewCenter;
+@synthesize initialViewFrameOrigin;
 @end

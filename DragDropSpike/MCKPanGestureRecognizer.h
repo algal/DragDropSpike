@@ -13,5 +13,5 @@
  over the extent of a DnD session
  */
 @interface MCKPanGestureRecognizer : UIPanGestureRecognizer
-@property (assign) CGPoint initialViewCenter;
+@property (assign) CGPoint initialViewFrameOrigin;
 @end
