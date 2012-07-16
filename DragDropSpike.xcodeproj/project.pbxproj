@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5E0F92FB15B482D1007A15E5 /* MCKPanGestureRecognizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 5E0F92FA15B482D1007A15E5 /* MCKPanGestureRecognizer.m */; };
 		5EB7E6FD15B1CB9F0035A1DC /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5EB7E6FC15B1CB9F0035A1DC /* UIKit.framework */; };
 		5EB7E6FF15B1CB9F0035A1DC /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5EB7E6FE15B1CB9F0035A1DC /* Foundation.framework */; };
 		5EB7E70115B1CB9F0035A1DC /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5EB7E70015B1CB9F0035A1DC /* CoreGraphics.framework */; };
@@ -23,6 +24,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		5E0F92F915B482D1007A15E5 /* MCKPanGestureRecognizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MCKPanGestureRecognizer.h; sourceTree = "<group>"; };
+		5E0F92FA15B482D1007A15E5 /* MCKPanGestureRecognizer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MCKPanGestureRecognizer.m; sourceTree = "<group>"; };
 		5EB7E6F815B1CB9F0035A1DC /* DragDropSpike.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DragDropSpike.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5EB7E6FC15B1CB9F0035A1DC /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		5EB7E6FE15B1CB9F0035A1DC /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -98,13 +101,15 @@
 			isa = PBXGroup;
 			children = (
 				5EB7E71E15B1D8C30035A1DC /* PSLog.h */,
-				5EB7E71915B1D0910035A1DC /* MCKDragDropProtocol.h */,
 				5EB7E70B15B1CB9F0035A1DC /* AppDelegate.h */,
 				5EB7E70C15B1CB9F0035A1DC /* AppDelegate.m */,
 				5EB7E70E15B1CB9F0035A1DC /* MainStoryboard.storyboard */,
 				5EB7E71115B1CB9F0035A1DC /* ViewController.h */,
 				5EB7E71215B1CB9F0035A1DC /* ViewController.m */,
+				5EB7E71915B1D0910035A1DC /* MCKDragDropProtocol.h */,
 				5EB7E70315B1CB9F0035A1DC /* Supporting Files */,
+				5E0F92F915B482D1007A15E5 /* MCKPanGestureRecognizer.h */,
+				5E0F92FA15B482D1007A15E5 /* MCKPanGestureRecognizer.m */,
 			);
 			path = DragDropSpike;
 			sourceTree = "<group>";
@@ -206,6 +211,7 @@
 				5EDEE55615B43CA8004C46B9 /* DCFrameView.m in Sources */,
 				5EDEE55715B43CA8004C46B9 /* DCIntrospect.m in Sources */,
 				5EDEE55815B43CA8004C46B9 /* DCStatusBarOverlay.m in Sources */,
+				5E0F92FB15B482D1007A15E5 /* MCKPanGestureRecognizer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
