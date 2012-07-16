@@ -106,10 +106,10 @@
 
 -(void)handleDraggablePan:(UIPanGestureRecognizer*)recognizer
 {
-  UIView * absorberView;
-  UIView * donorView;
-  NSObject <MCKDnDAbsorberProtocol> * absorberDelegate;
-  NSObject <MCKDnDDonorProtocol>    * donorDelegate;
+  UIView * donorView = self.leftContainer;
+  UIView * absorberView = self.rightContainer;
+  NSObject <MCKDnDAbsorberProtocol> * absorberDelegate = self;
+  NSObject <MCKDnDDonorProtocol>    * donorDelegate = self;
   
   // keep moving the view to follow the finger's translational motion
   CGPoint translation = [recognizer translationInView:recognizer.view.superview];
@@ -142,6 +142,7 @@
       [donorDelegate donorView:donorView didDonateDraggingView:draggableView];
     } 
     else {
+      PSLogInfo(@"absorber rejected the drop");
       [donorDelegate donorView:donorView reclaimDraggingView:draggableView];
     }
   }
@@ -182,6 +183,10 @@
 -(void) donorView:(UIView*)donor reclaimDraggingView:(UIView*)draggingSubview
 {
   PSLogInfo(@"");
+  CGRect restoredFrame = draggingSubview.frame;
+  restoredFrame.origin = self.initialDraggableViewOrigin;
+  draggingSubview.frame = restoredFrame;
+  [draggingSubview.superview setNeedsDisplay];
 }
 
 #pragma mark MCKDnDAbsorberProtocol delegate
@@ -190,6 +195,9 @@
 -(BOOL) absorberView:(UIView*)absorber canAbsorbDraggingView:(UIView*)draggingSubview
 {
   PSLogInfo(@"");
+  return CGRectContainsPoint(absorber.bounds,
+                             [absorber convertPoint:draggingSubview.center
+                                           fromView:draggingSubview.superview]);
   return YES;
 }
 

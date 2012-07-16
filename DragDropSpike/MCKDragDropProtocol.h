@@ -12,6 +12,14 @@
  Delegate protocol declaring methods required for drag-and-drop mechanics,
  where a Donor UIView can give up one of its subviews to an Absorber UIView,
  which may accept or reject the draggingSubview.
+ 
+ 
+ Q:
+ Should some of these methods be removed, and instead implementers should
+ just override the existing UIView methods:
+ – (void) [UIView didAddSubview:(UIView*)subview]
+ – (void) [UIView willRemoveSubview:(UIView*)subview]
+
  */
 
 
@@ -21,7 +29,7 @@
 /** Tells delegate the user has picked up draggingSubview of donor */
 -(void) donorView:(UIView*)donor didBeginDraggingView:(UIView*)draggingSubview;
 
-// 2. Absorber view decides if it accepts or rejects the drop
+// 2. Absorber delegate decides if it accepts or rejects the drop
 
 // A.3 Donor yields the draggingSubview to the Absorber.
 /** Tells delegate draggingSubview will soon be 'donated' to absorber view */
