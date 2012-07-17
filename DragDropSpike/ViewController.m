@@ -12,12 +12,6 @@
 #import "MCKDragDropProtocol.h"
 #import "MCKPanGestureRecognizer.h"
 
-@interface ViewController ()
-
-
-@end
-
-
 @implementation ViewController
 
 @synthesize leftContainer;
@@ -79,9 +73,8 @@
     // apply pickup effects & cache undo function
     [self applyPickupEffectToView:recognizer.view saveUndoToRecognizer:recognizer];
 
-    // find the just-pickup-up object's Donor's delegate
+    // tell just-picked-up object's Donor's delegate about the drag
     donorView = [[self class] donorOfView:recognizer.view];
-     
     [donorDelegate donorView:donorView didBeginDraggingView:recognizer.view];
   }
   else if (recognizer.state == UIGestureRecognizerStateChanged) {
@@ -93,22 +86,22 @@
     recognizer.view.center = CGPointMake(recognizer.view.center.x + translation.x,
                                          recognizer.view.center.y + translation.y);
     [recognizer setTranslation:CGPointMake(0, 0) inView:recognizer.view.superview];
-    
   }
   else if (recognizer.state == UIGestureRecognizerStateEnded) {
     // DROP EVENT
     PSLogInfo(@"state = %u. StateEnded => drop",recognizer.state);
-    // find the candidate Absorber
+
+    UIView * beingDroppedView = recognizer.view;
+    absorberView = [self absorberOfView:recognizer.view];
     // will the absorber accept the dropped view?
-    UIView * draggableView = recognizer.view;
-    const BOOL dropWasReceived = [absorberDelegate absorberView:absorberView
-                                          canAbsorbDraggingView:draggableView];
-    if ( dropWasReceived ) {
+    const BOOL dropWasAccepted = [absorberDelegate absorberView:absorberView
+                                          canAbsorbDraggingView:beingDroppedView];
+    if ( dropWasAccepted ) {
       PSLogInfo(@"absorber accepted the drop");
-      [donorDelegate donorView:donorView willDonateDraggingView:draggableView];
+      [donorDelegate donorView:donorView willDonateDraggingView:beingDroppedView];
       recognizer.undoPickupEffectOnView();
-      [absorberDelegate absorberView:absorberView absorbDraggingView:draggableView];
-      [donorDelegate donorView:donorView didDonateDraggingView:draggableView];
+      [absorberDelegate absorberView:absorberView absorbDraggingView:beingDroppedView];
+      [donorDelegate donorView:donorView didDonateDraggingView:beingDroppedView];
     }
     else {
       PSLogInfo(@"absorber rejected the drop");
@@ -118,17 +111,17 @@
       CGRect restoredFrame = draggingSubview.frame;
       restoredFrame.origin = recognizer.initialViewFrameOrigin;
 
-      dispatch_block_t RestoreViewToPutdown = recognizer.undoPickupEffectOnView;
+      dispatch_block_t UndoPickupEffects = recognizer.undoPickupEffectOnView;
       [UIView animateWithDuration:0.3f
                        animations:^{
                          draggingSubview.frame = restoredFrame;
                        }
                        completion:^(BOOL finished) {
                          // ... then restore appearance
-                         RestoreViewToPutdown();
+                         UndoPickupEffects();
                        }];
 
-      [donorDelegate donorView:donorView reclaimDraggingView:draggableView];
+      [donorDelegate donorView:donorView reclaimDraggingView:beingDroppedView];
     }
   }
   else {
@@ -138,20 +131,22 @@
 
 #pragma mark DnD framework helpers
 
+// FIXME: enhance to allow view's Donor to be any ancestor
 +(UIView*) donorOfView:(UIView*)pickedUpView {
-  /* 
-   TODO: can beef this up to allow the picked-up view to be not merely the
-   subview of the Donor, but some further ancestor.
-   */
   return pickedUpView.superview;
 }
 
-+(UIView*) absorberOfView:(UIView*)justDroppedView {
+// FIXME: add hit testing to compute aborber from droppedView's location
+-(UIView*) absorberOfView:(UIView*)justDroppedView {
   /*
-   TODO: can beef this up to allow the just-dropped view to be not merely the
-   subview of the Donor, but some further ancestor.
+   Need an algorithm here for identifying an appropriately-marked view given
+   a location for the drop.
+   
+   The hit-test algorithm already defines a traversal order for views based
+   on a given location. Perhaps just traverse like that, and use the first
+   view that conforms to a protocol?
    */
-  return justDroppedView.superview;
+  return self.rightContainer;
 }
 
 /*
