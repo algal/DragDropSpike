@@ -33,11 +33,9 @@
  
  */
 
-typedef void (^MCKMutatePropertiesOfView_t) (UIView *view);
-
 @interface MCKPanGestureRecognizer : UIPanGestureRecognizer
 @property (assign) CGPoint initialViewFrameOrigin;
 /* (lowercase because a property, or uppercase because a function?) */
-@property (strong) MCKMutatePropertiesOfView_t undoPickupEffectOnView;
+@property (strong) dispatch_block_t undoPickupEffectOnView;
            
 @end

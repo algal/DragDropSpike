@@ -106,7 +106,7 @@
     if ( dropWasReceived ) {
       PSLogInfo(@"absorber accepted the drop");
       [donorDelegate donorView:donorView willDonateDraggingView:draggableView];
-      recognizer.undoPickupEffectOnView(draggableView);
+      recognizer.undoPickupEffectOnView();
       [absorberDelegate absorberView:absorberView absorbDraggingView:draggableView];
       [donorDelegate donorView:donorView didDonateDraggingView:draggableView];
     }
@@ -118,14 +118,14 @@
       CGRect restoredFrame = draggingSubview.frame;
       restoredFrame.origin = recognizer.initialViewFrameOrigin;
 
-      MCKMutatePropertiesOfView_t RestoreViewToPutdown = recognizer.undoPickupEffectOnView;
+      dispatch_block_t RestoreViewToPutdown = recognizer.undoPickupEffectOnView;
       [UIView animateWithDuration:0.3f
                        animations:^{
                          draggingSubview.frame = restoredFrame;
                        }
                        completion:^(BOOL finished) {
                          // ... then restore appearance
-                         RestoreViewToPutdown(draggingSubview);
+                         RestoreViewToPutdown();
                        }];
 
       [donorDelegate donorView:donorView reclaimDraggingView:draggableView];
@@ -185,11 +185,13 @@
   CGFloat theInitialShadowOpacity = v.layer.shadowOpacity;
   UIColor * theInitialColor = v.backgroundColor;
   
-  recognizer.undoPickupEffectOnView = ^(UIView *vv) {
-    vv.layer.shadowOffset = theInitialShadowOffset;
-    vv.layer.shadowRadius = theInitialShadowRadius;
-    vv.layer.shadowOpacity = theInitialShadowOpacity;
-    vv.backgroundColor = theInitialColor;
+  recognizer.undoPickupEffectOnView = ^ {
+    // block now holds strong reference to UIVIew, so it will keep the view
+    // alive until its own owning recognizer is dealloced.
+    v.layer.shadowOffset = theInitialShadowOffset;
+    v.layer.shadowRadius = theInitialShadowRadius;
+    v.layer.shadowOpacity = theInitialShadowOpacity;
+    v.backgroundColor = theInitialColor;
   };
   
   // apply a generic pickup animation
