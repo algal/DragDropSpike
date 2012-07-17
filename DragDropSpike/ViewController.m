@@ -14,9 +14,6 @@
 
 @interface ViewController ()
 
-@property (assign) CGSize initialShadowOffset;
-@property (assign) CGFloat initialShadowRadius;
-@property (assign) CGFloat initialShadowOpacity;
 
 @end
 
@@ -74,15 +71,21 @@
   else if (recognizer.state == UIGestureRecognizerStateBegan) {
     // PICKUP EVENT
     PSLogInfo(@"state = %u. StateBegan => pickup",recognizer.state);
+
+    // cache original position
     recognizer.initialViewFrameOrigin = recognizer.view.frame.origin;
     PSLogInfo(@"caching initial view center of %@",NSStringFromCGPoint(recognizer.initialViewFrameOrigin));
+
+    // apply pickup effects & cache undo function
+    [self applyPickupEffectToView:recognizer.view saveUndoToRecognizer:recognizer];
+
     // find the just-pickup-up object's Donor's delegate
     donorView = [[self class] donorOfView:recognizer.view];
      
-    [self animatePickingUpView:recognizer.view];
     [donorDelegate donorView:donorView didBeginDraggingView:recognizer.view];
   }
   else if (recognizer.state == UIGestureRecognizerStateChanged) {
+    // MOVE EVENT
     PSLogInfo(@"state = %u. StateChanged => movement",recognizer.state);
     
     // move the view to follow the finger's translational motion
@@ -103,22 +106,26 @@
     if ( dropWasReceived ) {
       PSLogInfo(@"absorber accepted the drop");
       [donorDelegate donorView:donorView willDonateDraggingView:draggableView];
-      [self animateDroppingView:draggableView];
+      recognizer.undoPickupEffectOnView(draggableView);
       [absorberDelegate absorberView:absorberView absorbDraggingView:draggableView];
       [donorDelegate donorView:donorView didDonateDraggingView:draggableView];
     }
     else {
       PSLogInfo(@"absorber rejected the drop");
-      // do a slide-back animation
+      // animate slide-back to original position ...
       UIView * draggingSubview = recognizer.view;
+
       CGRect restoredFrame = draggingSubview.frame;
       restoredFrame.origin = recognizer.initialViewFrameOrigin;
+
+      MCKMutatePropertiesOfView_t RestoreViewToPutdown = recognizer.undoPickupEffectOnView;
       [UIView animateWithDuration:0.3f
                        animations:^{
                          draggingSubview.frame = restoredFrame;
                        }
                        completion:^(BOOL finished) {
-                         [self animateDroppingView:draggingSubview];
+                         // ... then restore appearance
+                         RestoreViewToPutdown(draggingSubview);
                        }];
 
       [donorDelegate donorView:donorView reclaimDraggingView:draggableView];
@@ -167,31 +174,29 @@
   
   [self.draggableItem addGestureRecognizer:panGestureRecognizer];
   
-  //  UIGestureRecognizer * tapRecognizer =
-  //  [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tap:)];
 }
 
--(void)animatePickingUpView:(UIView*)v {
+-(void) applyPickupEffectToView:(UIView*)v
+           saveUndoToRecognizer:(MCKPanGestureRecognizer*)recognizer {
   PSLogInfo(@"");
-  // cache old values
-  self.initialShadowOffset  = v.layer.shadowOffset;
-  self.initialShadowRadius  = v.layer.shadowRadius;
-  self.initialShadowOpacity = v.layer.shadowOpacity;
+  // cache original values in restorer function
+  CGSize  theInitialShadowOffset  = v.layer.shadowOffset;
+  CGFloat theInitialShadowRadius  = v.layer.shadowRadius;
+  CGFloat theInitialShadowOpacity = v.layer.shadowOpacity;
+  UIColor * theInitialColor = v.backgroundColor;
+  
+  recognizer.undoPickupEffectOnView = ^(UIView *vv) {
+    vv.layer.shadowOffset = theInitialShadowOffset;
+    vv.layer.shadowRadius = theInitialShadowRadius;
+    vv.layer.shadowOpacity = theInitialShadowOpacity;
+    vv.backgroundColor = theInitialColor;
+  };
   
   // apply a generic pickup animation
   v.layer.shadowOffset = CGSizeMake(0, 10);
   v.layer.shadowRadius = 25;
   v.layer.shadowOpacity = 1.0;
   v.backgroundColor = [UIColor greenColor]; // for debugging
-}
-
--(void)animateDroppingView:(UIView*)v {
-  PSLogInfo(@"");
-  // apply a generic drop animation
-  v.layer.shadowOffset  = self.initialShadowOffset;
-  v.layer.shadowRadius  = self.initialShadowRadius;
-  v.layer.shadowOpacity = self.initialShadowOpacity;
-  v.backgroundColor = [UIColor whiteColor];
 }
 
 #pragma mark  MCKDnDDonorProtocol delegate

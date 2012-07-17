@@ -10,4 +10,5 @@
 
 @implementation MCKPanGestureRecognizer
 @synthesize initialViewFrameOrigin;
+@synthesize undoPickupEffectOnView;
 @end
