@@ -12,6 +12,10 @@
 #import "MCKDragDropProtocol.h"
 #import "MCKPanGestureRecognizer.h"
 
+@interface UIView (debug)
+- (NSString *)recursiveDescription;
+@end
+
 @implementation ViewController
 
 @synthesize leftContainer;
@@ -59,18 +63,27 @@
   NSObject <MCKDnDAbsorberProtocol> * absorberDelegate = self;
   NSObject <MCKDnDDonorProtocol>    * donorDelegate = self;
 
+  
+  UIView * theView = recognizer.view;
+  
   if (recognizer.state == UIGestureRecognizerStatePossible) {
     PSLogInfo(@"state = %u. Possible",recognizer.state);
   }
+
+  // PICKUP EVENT
   else if (recognizer.state == UIGestureRecognizerStateBegan) {
-    // PICKUP EVENT
     PSLogInfo(@"state = %u. StateBegan => pickup",recognizer.state);
 
-    // cache original position
-    recognizer.initialViewFrameOrigin = recognizer.view.frame.origin;
-    PSLogInfo(@"caching initial view frame.origin of %@",
-              NSStringFromCGPoint(recognizer.initialViewFrameOrigin));
+    // cache original frame
+    recognizer.initialViewFrame = recognizer.view.frame;
+   
+    // cache original superview, subview index
+    [self saveViewHierarchySlotOfView:recognizer.view toRecognizer:recognizer];
 
+    // move to top of rootVC's view
+    [[self class] swapView:recognizer.view
+               toSuperview:recognizer.view.window.rootViewController.view];
+    
     // apply pickup effects & cache undo function
     [self applyPickupEffectToView:recognizer.view saveUndoToRecognizer:recognizer];
 
@@ -78,9 +91,11 @@
     donorView = [[self class] donorOfView:recognizer.view];
     [donorDelegate donorView:donorView didBeginDraggingView:recognizer.view];
   }
+
+  // MOVE EVENT
   else if (recognizer.state == UIGestureRecognizerStateChanged) {
-    // MOVE EVENT
     PSLogInfo(@"state = %u. StateChanged => movement",recognizer.state);
+    PSLogInfo(@"theView.frame=%@",NSStringFromCGRect(theView.frame));
     
     // move the view to follow the finger's translational motion
     CGPoint translation = [recognizer translationInView:recognizer.view.superview];
@@ -88,10 +103,12 @@
                                          recognizer.view.center.y + translation.y);
     [recognizer setTranslation:CGPointMake(0, 0) inView:recognizer.view.superview];
   }
-  else if (recognizer.state == UIGestureRecognizerStateEnded) {
-    // DROP EVENT
-    PSLogInfo(@"state = %u. StateEnded => drop",recognizer.state);
 
+  // DROP EVENT
+  else if (recognizer.state == UIGestureRecognizerStateEnded) {
+    PSLogInfo(@"state = %u. StateEnded => drop",recognizer.state);
+    PSLogInfo(@"theView.frame=%@",NSStringFromCGRect(theView.frame));
+    
     UIView * beingDroppedView = recognizer.view;
     absorberView = [self absorberOfView:recognizer.view];
     // will the absorber accept the dropped view?
@@ -106,18 +123,19 @@
     }
     else {
       PSLogInfo(@"absorber rejected the drop");
+      
       // animate slide-back to original position ...
-      UIView * draggingSubview = recognizer.view;
-
-      CGRect restoredFrame = draggingSubview.frame;
-      restoredFrame.origin = recognizer.initialViewFrameOrigin;
-
       dispatch_block_t UndoPickupEffects = recognizer.undoPickupEffectOnView;
+      CGRect restoredFrame = [beingDroppedView.superview convertRect:recognizer.initialViewFrame fromView:recognizer.initialViewSuperview];
       [UIView animateWithDuration:0.3f
                        animations:^{
-                         draggingSubview.frame = restoredFrame;
+                         // ... restore VH slot
+                         beingDroppedView.frame = restoredFrame;
                        }
                        completion:^(BOOL finished) {
+                               // restore VH
+                         // fixme: not restoring subviewIndex properly
+                         [[self class] swapView:beingDroppedView toSuperview:recognizer.initialViewSuperview];
                          // ... then restore appearance
                          UndoPickupEffects();
                        }];
@@ -132,8 +150,8 @@
 
 #pragma mark DnD framework helpers
 
-/** moves view within in the view hierarchy, preserving absolute frame */
-+ (void) moveView:(UIView*)view toSuperview:(UIView*)newSuperview {
+/** moves view within the view hierarchy, preserving absolute frame */
++ (void) swapView:(UIView*)view toSuperview:(UIView*)newSuperview {
   CGRect newFrame = [view.superview convertRect:view.frame toView:newSuperview];
   [newSuperview addSubview:view];
   view.frame = newFrame;
@@ -176,8 +194,15 @@
                                           action:@selector(handleDraggablePan:)];
   
   [self.draggableItem addGestureRecognizer:panGestureRecognizer];
-  
 }
+
+
+-(void) saveViewHierarchySlotOfView:(UIView*)v toRecognizer:(MCKPanGestureRecognizer*)recognizer {
+  recognizer.initialViewFrame = v.frame;
+  recognizer.initialViewSuperview = v.superview;
+  recognizer.initialSubviewIndex = [v.superview.subviews indexOfObject:v];
+}
+
 
 -(void) applyPickupEffectToView:(UIView*)v
            saveUndoToRecognizer:(MCKPanGestureRecognizer*)recognizer {
@@ -255,15 +280,13 @@
   return YES;
 }
 
-/* STAGE 4 */
+/* STAGE 4
+ this method is repsonsible for taking dragginView into the absorber's VH.
+ */
 -(void) absorberView:(UIView*)absorber absorbDraggingView:(UIView*)draggingSubview
 {
   PSLogInfo(@"");
-  UIView *oldSuperview = draggingSubview.superview;
-  PSLogInfo(@"moving dropped view into absorber VH");
-  draggingSubview.frame = [absorber convertRect:draggingSubview.frame
-                                       fromView:oldSuperview];
-  [absorber addSubview:draggingSubview];
+  [[self class] swapView:draggingSubview toSuperview:absorber];
   return;
 }
 

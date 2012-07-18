@@ -34,7 +34,10 @@
  */
 
 @interface MCKPanGestureRecognizer : UIPanGestureRecognizer
-@property (assign) CGPoint initialViewFrameOrigin;
+@property (assign) CGRect initialViewFrame;
+@property (strong) UIView * initialViewSuperview;
+@property (assign) NSUInteger initialSubviewIndex;
+
 /* (lowercase because a property, or uppercase because a function?) */
 @property (strong) dispatch_block_t undoPickupEffectOnView;
            
