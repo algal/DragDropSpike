@@ -41,14 +41,14 @@
 
 // B.3. Donor re-integrates draggingSubview, which Absorber rejected
 /**
-  Reclaim draggingSubview into donorView's view hierarchy.
+  Tells donor draggingSubview was returned after a rejected drop.
   @param donor
   @param draggingSubview
   Called if an attempted drop was rejected by the absorber. Should probably 
  animate the dropped view back to its original position and restore the state 
  of the donor view to its value before the draggingSubview was picked up.
  */
--(void) donorView:(UIView*)donor reclaimDraggingView:(UIView*)draggingSubview;
+-(void) donorView:(UIView*)donor didReclaimDraggingView:(UIView*)draggingSubview;
 @end
 
 
@@ -67,12 +67,15 @@
 
 // A.4 Absorber receives the donated view
 /**
- Absorb draggingSubview into absorber's view hierarchy.
+ Tells delegate draggingSubview has been inserted into absorber's VH.
+
  @param absorber
  @param draggingSubview
 
- Absorber could actually take and integrate the draggingSubview object directly
- into its own view hierarchy, or it could 
+ Absorber should perform any work necessary after having been given the dropped
+ view. Absorber could actually integrate the draggingSubview object directly
+ into its own view hierarchy, or it could kill it, replace it with a lookalike,
+ etc..
  */
--(void) absorberView:(UIView*)absorber absorbDraggingView:(UIView*)draggingSubview;
+-(void) absorberView:(UIView*)absorber didAbsorbDraggingView:(UIView*)draggingSubview;
 @end

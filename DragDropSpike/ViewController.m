@@ -95,7 +95,6 @@
   // MOVE EVENT
   else if (recognizer.state == UIGestureRecognizerStateChanged) {
     PSLogInfo(@"state = %u. StateChanged => movement",recognizer.state);
-    PSLogInfo(@"theView.frame=%@",NSStringFromCGRect(theView.frame));
     
     // move the view to follow the finger's translational motion
     CGPoint translation = [recognizer translationInView:recognizer.view.superview];
@@ -114,33 +113,36 @@
     // will the absorber accept the dropped view?
     const BOOL dropWasAccepted = [absorberDelegate absorberView:absorberView
                                           canAbsorbDraggingView:beingDroppedView];
+    // DROP ACCEPTED
     if ( dropWasAccepted ) {
       PSLogInfo(@"absorber accepted the drop");
       [donorDelegate donorView:donorView willDonateDraggingView:beingDroppedView];
       recognizer.undoPickupEffectOnView();
-      [absorberDelegate absorberView:absorberView absorbDraggingView:beingDroppedView];
+      [[self class] swapView:beingDroppedView toSuperview:absorberView];
+      [absorberDelegate absorberView:absorberView didAbsorbDraggingView:beingDroppedView];
       [donorDelegate donorView:donorView didDonateDraggingView:beingDroppedView];
     }
+    // DROP REJECTED
     else {
       PSLogInfo(@"absorber rejected the drop");
       
       // animate slide-back to original position ...
       dispatch_block_t UndoPickupEffects = recognizer.undoPickupEffectOnView;
-      CGRect restoredFrame = [beingDroppedView.superview convertRect:recognizer.initialViewFrame fromView:recognizer.initialViewSuperview];
+      CGRect restoredFrame = [beingDroppedView.superview convertRect:recognizer.initialViewFrame
+                                                            fromView:recognizer.initialViewSuperview];
       [UIView animateWithDuration:0.3f
                        animations:^{
-                         // ... restore VH slot
+                         // ... restore absolute frame
                          beingDroppedView.frame = restoredFrame;
                        }
                        completion:^(BOOL finished) {
-                               // restore VH
-                         // fixme: not restoring subviewIndex properly
-                         [[self class] swapView:beingDroppedView toSuperview:recognizer.initialViewSuperview];
                          // ... then restore appearance
                          UndoPickupEffects();
+                         // restore view hierarchy
+                         // FIXME not restoring subviewIndex properly
+                         [[self class] swapView:beingDroppedView toSuperview:recognizer.initialViewSuperview];
+                         [donorDelegate donorView:donorView didReclaimDraggingView:beingDroppedView];
                        }];
-
-      [donorDelegate donorView:donorView reclaimDraggingView:beingDroppedView];
     }
   }
   else {
@@ -261,9 +263,9 @@
 }
 
 /*
- Should this slide-back animation be the responsibility of the DnD framework or the donor?
+ Tells donor that draggingView was animated back into old position.
  */
--(void) donorView:(UIView*)donor reclaimDraggingView:(UIView*)draggingSubview
+-(void) donorView:(UIView*)donor didReclaimDraggingView:(UIView*)draggingSubview
 {
   PSLogInfo(@"");
 }
@@ -283,10 +285,9 @@
 /* STAGE 4
  this method is repsonsible for taking dragginView into the absorber's VH.
  */
--(void) absorberView:(UIView*)absorber absorbDraggingView:(UIView*)draggingSubview
+-(void) absorberView:(UIView*)absorber didAbsorbDraggingView:(UIView*)draggingSubview
 {
   PSLogInfo(@"");
-  [[self class] swapView:draggingSubview toSuperview:absorber];
   return;
 }
 

@@ -20,11 +20,11 @@
 -(void) donorView:(UIView*)donor didBeginDraggingView:(UIView*)draggingSubview;
 -(void) donorView:(UIView*)donor willDonateDraggingView:(UIView*)draggingSubview;
 -(void) donorView:(UIView*)donor didDonateDraggingView:(UIView*)draggingSubview;
--(void) donorView:(UIView*)donor reclaimDraggingView:(UIView*)draggingSubview;
+-(void) donorView:(UIView*)donor didReclaimDraggingView:(UIView*)draggingSubview;
 
 #pragma mark MCKDnDAbsorberProtocol delegate
 
 -(BOOL) absorberView:(UIView*)absorber canAbsorbDraggingView:(UIView*)draggingSubview;
--(void) absorberView:(UIView*)absorber absorbDraggingView:(UIView*)draggingSubview;
+-(void) absorberView:(UIView*)absorber didAbsorbDraggingView:(UIView*)draggingSubview;
 
 @end
