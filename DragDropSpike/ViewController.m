@@ -54,8 +54,8 @@
 {
   MCKPanGestureRecognizer * recognizer = (MCKPanGestureRecognizer*)theRecognizer;
   
-  UIView * donorView = self.leftContainer;
-  UIView * absorberView = self.rightContainer;
+  UIView * donorView;
+  UIView * absorberView;
   NSObject <MCKDnDAbsorberProtocol> * absorberDelegate = self;
   NSObject <MCKDnDDonorProtocol>    * donorDelegate = self;
 
