@@ -80,6 +80,10 @@
     // cache original superview, subview index
     [self saveViewHierarchySlotOfView:recognizer.view toRecognizer:recognizer];
 
+    // tell donor view is about to be detached
+    donorView = [[self class] donorOfView:recognizer.view];
+    [donorDelegate donorView:donorView willBeginDraggingView:recognizer.view];
+    
     // move to top of rootVC's view
     [[self class] swapView:recognizer.view
                toSuperview:recognizer.view.window.rootViewController.view];
@@ -88,7 +92,6 @@
     [self applyPickupEffectToView:recognizer.view saveUndoToRecognizer:recognizer];
 
     // tell just-picked-up object's Donor's delegate about the drag
-    donorView = [[self class] donorOfView:recognizer.view];
     [donorDelegate donorView:donorView didBeginDraggingView:recognizer.view];
   }
 
@@ -232,6 +235,11 @@
 }
 
 #pragma mark  MCKDnDDonorProtocol delegate
+
+-(void) donorView:(UIView*)donor willBeginDraggingView:(UIView*)draggingSubview
+{
+  PSLogInfo(@"");
+}
 
 /*
  STAGE 1.

@@ -25,8 +25,11 @@
 
 @protocol MCKDnDDonorProtocol <NSObject>
 
+/** Tells delegate the user will remove the draggingSubview from the donor */
+-(void) donorView:(UIView*)donor willBeginDraggingView:(UIView*)draggingSubview;
+
 // 1. User picks up an object within Donor's view hierarchy (VH).
-/** Tells delegate the user has picked up draggingSubview of donor */
+/** Tells delegate the user has removed the draggingSubview from the donor */
 -(void) donorView:(UIView*)donor didBeginDraggingView:(UIView*)draggingSubview;
 
 // 2. Absorber delegate decides if it accepts or rejects the drop
