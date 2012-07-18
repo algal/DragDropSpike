@@ -68,7 +68,8 @@
 
     // cache original position
     recognizer.initialViewFrameOrigin = recognizer.view.frame.origin;
-    PSLogInfo(@"caching initial view center of %@",NSStringFromCGPoint(recognizer.initialViewFrameOrigin));
+    PSLogInfo(@"caching initial view frame.origin of %@",
+              NSStringFromCGPoint(recognizer.initialViewFrameOrigin));
 
     // apply pickup effects & cache undo function
     [self applyPickupEffectToView:recognizer.view saveUndoToRecognizer:recognizer];
@@ -130,6 +131,13 @@
 }
 
 #pragma mark DnD framework helpers
+
+/** moves view within in the view hierarchy, preserving absolute frame */
++ (void) moveView:(UIView*)view toSuperview:(UIView*)newSuperview {
+  CGRect newFrame = [view.superview convertRect:view.frame toView:newSuperview];
+  [newSuperview addSubview:view];
+  view.frame = newFrame;
+}
 
 // FIXME: enhance to allow view's Donor to be any ancestor
 +(UIView*) donorOfView:(UIView*)pickedUpView {
