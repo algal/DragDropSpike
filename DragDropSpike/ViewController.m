@@ -17,7 +17,7 @@
 @end
 
 // helpers for moving views in the view hierarchy but not onscreen
-@implementation UIView (motionless)
+@implementation UIView (MCKmotionless)
 -(void)motionlessAddSubview:(UIView*)view
 {
   CGRect newFrame = [view.superview convertRect:view.frame toView:self];
@@ -76,10 +76,12 @@
 {
   MCKPanGestureRecognizer * recognizer = (MCKPanGestureRecognizer*)theRecognizer;
   
-  UIView * donorView;
-  UIView * absorberView;
+  // FIXME: should be set at intialization
   NSObject <MCKDnDAbsorberProtocol> * absorberDelegate = self;
   NSObject <MCKDnDDonorProtocol>    * donorDelegate = self;
+  
+  UIView * donorView; // will be detected at drag time
+  UIView * absorberView; // will be detected at drop time
 
   
   UIView * theView = recognizer.view;
