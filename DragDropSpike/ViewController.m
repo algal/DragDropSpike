@@ -16,6 +16,24 @@
 - (NSString *)recursiveDescription;
 @end
 
+// helpers for moving views in the view hierarchy but not onscreen
+@implementation UIView (motionless)
+-(void)motionlessAddSubview:(UIView*)view
+{
+  CGRect newFrame = [view.superview convertRect:view.frame toView:self];
+  [self addSubview:view];
+  view.frame = newFrame;
+}
+
+-(void)motionlessInsertSubview:(UIView*)view atIndex:(NSUInteger)index
+{
+  CGRect newFrame = [view.superview convertRect:view.frame toView:self];
+  [self insertSubview:view atIndex:index];
+  view.frame = newFrame;
+}
+@end
+
+
 @implementation ViewController
 
 @synthesize leftContainer;
@@ -82,12 +100,10 @@
 
     // tell donor view is about to be detached
     donorView = [self  donorViewOfView:recognizer.view];
-    NSAssert(donorView == recognizer.view.superview, @"ERROR");
     [donorDelegate donorView:donorView willBeginDraggingView:recognizer.view];
     
     // move to top of rootVC's view
-    [[self class] swapView:recognizer.view
-               toSuperview:recognizer.view.window.rootViewController.view];
+    [recognizer.view.window.rootViewController.view motionlessAddSubview:recognizer.view];
     
     // apply pickup effects & cache undo function
     [self applyPickupEffectToView:recognizer.view saveUndoToRecognizer:recognizer];
@@ -98,7 +114,7 @@
 
   // MOVE EVENT
   else if (recognizer.state == UIGestureRecognizerStateChanged) {
-//    PSLogInfo(@"state = %u. StateChanged => movement",recognizer.state);
+    //PSLogInfo(@"state = %u. StateChanged => movement",recognizer.state);
     
     // move the view to follow the finger's translational motion
     CGPoint translation = [recognizer translationInView:recognizer.view.superview];
@@ -121,7 +137,7 @@
       PSLogInfo(@"absorber accepted the drop");
       [donorDelegate donorView:donorView willDonateDraggingView:beingDroppedView];
       recognizer.undoPickupEffectOnView();
-      [[self class] swapView:beingDroppedView toSuperview:absorberView];
+      [absorberView motionlessAddSubview:beingDroppedView];
       [absorberDelegate absorberView:absorberView didAbsorbDraggingView:beingDroppedView];
       [donorDelegate donorView:donorView didDonateDraggingView:beingDroppedView];
     }
@@ -133,6 +149,8 @@
       dispatch_block_t UndoPickupEffects = recognizer.undoPickupEffectOnView;
       CGRect restoredFrame = [beingDroppedView.superview convertRect:recognizer.initialViewFrame
                                                             fromView:recognizer.initialViewSuperview];
+      NSUInteger restoredIndex = recognizer.initialSubviewIndex;
+      
       [UIView animateWithDuration:0.3f
                        animations:^{
                          // ... restore absolute frame
@@ -142,8 +160,8 @@
                          // ... then restore appearance
                          UndoPickupEffects();
                          // restore view hierarchy
-                         // FIXME not restoring subviewIndex properly
-                         [[self class] swapView:beingDroppedView toSuperview:recognizer.initialViewSuperview];
+                         [recognizer.initialViewSuperview motionlessInsertSubview:beingDroppedView
+                                                                          atIndex:restoredIndex];
                          [donorDelegate donorView:donorView didReclaimDraggingView:beingDroppedView];
                        }];
     }
@@ -155,14 +173,6 @@
 
 #pragma mark DnD framework helpers
 
-/** moves view within the view hierarchy, preserving absolute frame */
-+ (void) swapView:(UIView*)view toSuperview:(UIView*)newSuperview {
-  CGRect newFrame = [view.superview convertRect:view.frame toView:newSuperview];
-  [newSuperview addSubview:view];
-  view.frame = newFrame;
-}
-
-// FIXME: enhance to allow view's Donor to be any ancestor
 /**
   Finds the donor UIView of the pickedUpView. 
 
