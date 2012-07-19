@@ -81,7 +81,8 @@
     [self saveViewHierarchySlotOfView:recognizer.view toRecognizer:recognizer];
 
     // tell donor view is about to be detached
-    donorView = [[self class] donorOfView:recognizer.view];
+    donorView = [self  donorViewOfView:recognizer.view];
+    NSAssert(donorView == recognizer.view.superview, @"ERROR");
     [donorDelegate donorView:donorView willBeginDraggingView:recognizer.view];
     
     // move to top of rootVC's view
@@ -163,21 +164,61 @@
 }
 
 // FIXME: enhance to allow view's Donor to be any ancestor
-+(UIView*) donorOfView:(UIView*)pickedUpView {
-  return pickedUpView.superview;
+/**
+  Finds the donor UIView of the pickedUpView. 
+
+ @param pickedUpView the view just picked up by the user
+
+ The Donor view is the closest ancestor of pickedUpView that is a MCKDnDDonor.
+ */
+-(UIView*) donorViewOfView:(UIView*)pickedUpView
+{
+  UIView * retval = pickedUpView;
+  while ( (retval = pickedUpView.superview) )
+  {
+    if ( [self isADonorView:retval] )
+      break;
+  }
+  return retval;
 }
 
-// FIXME: add hit testing to compute aborber from droppedView's location
+/**
+  Returns first eligible absorber view beneath the dropped view
+ 
+ @param justDroppedView view being dropped
+ 
+ A view eligible to receive a drop if it conforms to MCKDnDAbsorberView, is
+ not hidden, is in its superview's bounds, and has userInteractionEnabled. The
+ first eligible view is the view deepest in the view hierarchy. In other words,
+ traverses possible dropped on view's using the same traversal rule as
+ -(UIView*)[UIView hitTest:withEvent:, searching for the first candidate that
+ conforms to MCKDnDAbsorberView.
+
+ */
 -(UIView*) absorberOfView:(UIView*)justDroppedView {
-  /*
-   Need an algorithm here for identifying an appropriately-marked view given
-   a location for the drop.
-   
-   The hit-test algorithm already defines a traversal order for views based
-   on a given location. Perhaps just traverse like that, and use the first
-   view that conforms to a protocol?
-   */
-  return self.rightContainer;
+  const UIWindow * win = [[UIApplication sharedApplication] keyWindow];
+  const CGPoint dropPoint = [win convertPoint:justDroppedView.center
+                                     fromView:justDroppedView.superview];
+
+  UIView * retval = nil;
+  justDroppedView.hidden = YES; // exclude from search
+  const NSMutableArray * viewsToUnhide = [NSMutableArray arrayWithObject:justDroppedView];
+   // get the next hitTest winner
+  while ( (retval = [win hitTest:dropPoint withEvent:nil]) ) {
+    // if it's also an absorber, we're done
+    if ([self isAnAbsorberView:retval])
+      break;
+    else {
+      // it was a hitTestWinner, but not an absorber
+      retval.hidden=YES; // hide to exclude from the next search
+      [viewsToUnhide addObject:retval]; // remember to unhide later
+    }
+  }
+ 
+  [viewsToUnhide enumerateObjectsUsingBlock:
+   ^(id obj, NSUInteger idx, BOOL *stop) { [obj setHidden:NO]; }];
+  
+  return retval;
 }
 
 /*
@@ -299,5 +340,19 @@
   return;
 }
 
+-(BOOL)isAnAbsorberView:(UIView *)view
+{
+  if (view == self.rightContainer || self.leftContainer)
+    return YES;
+  else
+    return NO;
+}
 
+-(BOOL)isADonorView:(UIView*)view
+{
+  if (view == self.rightContainer || self.leftContainer)
+    return YES;
+  else
+    return NO;
+}
 @end
