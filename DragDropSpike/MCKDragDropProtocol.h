@@ -59,12 +59,26 @@
 
 // 2. Absorber view decides if it accepts or rejects the drop (-> A.3 or B.3)
 /**
-  Called to determine if absorber will accept the drop of draggingSubview.
+ Reports if an absorber view will accept the drop of draggingSubview.
+
  @param absorber
  @param draggingSubview
  
- Called to determine if absorber will accept the drop of draggingSubview. This
- determines the effective drop zone for draggingSubview
+ Reports if an absorber view will accept the drop of a view. This method can 
+ apply logic that limits the effective valid drop zone of the absorber view, or 
+ that accepts the drop of certain views but not others.
+
+ This method will be called on the best candidate absorber view available. The
+ best candidate absorber view is whichever view (a) is designated as an absorber 
+ view (b) and is the hit-test view for the drop point.
+ 
+ The requirement that the absorber view be the hit test view implies that the 
+ absorber view must not be hidden, must have userInteractionEnabled, and must 
+ contain the drop point within its bounds. (The drop point is the center of the
+ dropped view.)
+ 
+ A view is designed an absorber view if:
+ 
  */
 -(BOOL) absorberView:(UIView*)absorber canAbsorbDraggingView:(UIView*)draggingSubview;
 

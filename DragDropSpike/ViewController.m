@@ -98,7 +98,7 @@
 
   // MOVE EVENT
   else if (recognizer.state == UIGestureRecognizerStateChanged) {
-    PSLogInfo(@"state = %u. StateChanged => movement",recognizer.state);
+//    PSLogInfo(@"state = %u. StateChanged => movement",recognizer.state);
     
     // move the view to follow the finger's translational motion
     CGPoint translation = [recognizer translationInView:recognizer.view.superview];
@@ -114,9 +114,8 @@
     
     UIView * beingDroppedView = recognizer.view;
     absorberView = [self absorberOfView:recognizer.view];
-    // will the absorber accept the dropped view?
-    const BOOL dropWasAccepted = [absorberDelegate absorberView:absorberView
-                                          canAbsorbDraggingView:beingDroppedView];
+    const BOOL dropWasAccepted = absorberView && [absorberDelegate absorberView:absorberView
+                                                          canAbsorbDraggingView:beingDroppedView];
     // DROP ACCEPTED
     if ( dropWasAccepted ) {
       PSLogInfo(@"absorber accepted the drop");
@@ -179,6 +178,7 @@
     if ( [self isADonorView:retval] )
       break;
   }
+  PSLogInfo(@"search found donor = %@",retval);
   return retval;
 }
 
@@ -187,7 +187,7 @@
  
  @param justDroppedView view being dropped
  
- A view eligible to receive a drop if it conforms to MCKDnDAbsorberView, is
+ A view eligible to receive a drop if it is designated an absorber, is
  not hidden, is in its superview's bounds, and has userInteractionEnabled. The
  first eligible view is the view deepest in the view hierarchy. In other words,
  traverses possible dropped on view's using the same traversal rule as
@@ -196,16 +196,15 @@
 
  */
 -(UIView*) absorberOfView:(UIView*)justDroppedView {
-  const UIWindow * win = [[UIApplication sharedApplication] keyWindow];
+  const UIWindow * win = justDroppedView.window;
   const CGPoint dropPoint = [win convertPoint:justDroppedView.center
                                      fromView:justDroppedView.superview];
-
   UIView * retval = nil;
   justDroppedView.hidden = YES; // exclude from search
   const NSMutableArray * viewsToUnhide = [NSMutableArray arrayWithObject:justDroppedView];
    // get the next hitTest winner
   while ( (retval = [win hitTest:dropPoint withEvent:nil]) ) {
-    // if it's also an absorber, we're done
+    // if it's an absorber, we're done
     if ([self isAnAbsorberView:retval])
       break;
     else {
@@ -218,6 +217,7 @@
   [viewsToUnhide enumerateObjectsUsingBlock:
    ^(id obj, NSUInteger idx, BOOL *stop) { [obj setHidden:NO]; }];
   
+  PSLogInfo(@"search found absorber = %@",retval);
   return retval;
 }
 
@@ -342,7 +342,7 @@
 
 -(BOOL)isAnAbsorberView:(UIView *)view
 {
-  if (view == self.rightContainer || self.leftContainer)
+  if (view == self.rightContainer || view == self.leftContainer)
     return YES;
   else
     return NO;
@@ -350,7 +350,7 @@
 
 -(BOOL)isADonorView:(UIView*)view
 {
-  if (view == self.rightContainer || self.leftContainer)
+  if (view == self.rightContainer || view == self.leftContainer)
     return YES;
   else
     return NO;

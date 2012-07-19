@@ -17,6 +17,13 @@
                             <view contentMode="scaleToFill" id="PHR-YU-cfX">
                                 <rect key="frame" x="536" y="541" width="468" height="179"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <subviews>
+                                    <view contentMode="scaleToFill" id="VEb-0Q-Ncd">
+                                        <rect key="frame" x="58" y="20" width="264" height="139"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        <color key="backgroundColor" red="0.0" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                    </view>
+                                </subviews>
                                 <color key="backgroundColor" red="0.71764705880000002" green="0.23921568630000001" blue="0.078431372550000003" alpha="1" colorSpace="calibratedRGB"/>
                             </view>
                             <view contentMode="scaleToFill" id="19Y-3V-b3J">
