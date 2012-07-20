@@ -69,12 +69,7 @@ static MCKDragDropServer* sharedServer = nil;
 #pragma mark DnD framework public API
 
 /*
- STAGE 0.
- 
- Cache info and do any setup necessary to support the view being dragged later.
- 
- This is now implemented in this VC, but maybe this should be part of the DnD
- framework.
+ Registers a view as draggable.
  */
 -(void) registerDraggableView:(UIView*)draggableView
 {
@@ -103,7 +98,6 @@ static MCKDragDropServer* sharedServer = nil;
  If not, instead of dictionaries we could use associated references on the views
  themselves.
  */
-
 -(void) registerDonorView:(UIView*)view delegate:(NSObject<MCKDragDropDonor>*)delegate
 {
   [self.donorViews setObject:delegate forKey:[NSValue valueWithNonretainedObject:view]];

@@ -63,10 +63,7 @@
  The donor could apply its own *specialized* logic here to modify its own
  appearance or state to reflect the fact that part of it has been picked up
  and/or is being dragged away. For instance,
- 
- This could also be the place to apply *generic* logic, that all donors would
- want, such as applying a "visual pickup" animation. However, perhaps such
- generic logic should be handled by the DnD framework.
+
  */
 -(void) donorView:(UIView*)donor didBeginDraggingView:(UIView*)draggingSubview
 {
@@ -83,7 +80,6 @@
 -(void) donorView:(UIView*)donor didDonateDraggingView:(UIView*)draggingSubview
 {
   PSLogInfo(@"");
-  // clear the saved information about its original position
 }
 
 /*
