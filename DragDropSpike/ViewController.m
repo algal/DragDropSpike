@@ -50,7 +50,7 @@
 }
 
 
-#pragma mark  MCKDnDDonorProtocol delegate
+#pragma mark MCKDragDropDonor delegate
 
 -(void) donorView:(UIView*)donor willBeginDraggingView:(UIView*)draggingSubview
 {
@@ -94,7 +94,7 @@
   PSLogInfo(@"");
 }
 
-#pragma mark MCKDnDAbsorberProtocol delegate
+#pragma mark MCKDragDropAbsorber delegate
 
 /* STAGE 2. */
 -(BOOL) absorberView:(UIView*)absorber canAbsorbDraggingView:(UIView*)draggingSubview
