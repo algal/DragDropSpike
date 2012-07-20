@@ -120,7 +120,7 @@ static MCKDragDropServer* sharedServer = nil;
  */
 -(void)handlePan:(MCKPanGestureRecognizer*)recognizer
 {
-  UIView * theView = recognizer.view;
+  UIView * dragView = recognizer.view;
   
   if (recognizer.state == UIGestureRecognizerStatePossible) {
     PSLogInfo(@"state = %u. Possible",recognizer.state);
@@ -131,29 +131,29 @@ static MCKDragDropServer* sharedServer = nil;
     PSLogInfo(@"state = %u. StateBegan => pickup",recognizer.state);
     
     // tell donor that view is about to be detached
-    UIView * donorView = [self donorViewOfView:recognizer.view];
+    UIView * donorView = [self donorViewOfView:dragView];
     NSObject <MCKDnDDonorProtocol>  * donorDelegate = [self delegateForDonorView:donorView];
     if ([donorDelegate respondsToSelector:@selector(donorView:willBeginDraggingView:)])
-      [donorDelegate donorView:donorView willBeginDraggingView:recognizer.view];
+      [donorDelegate donorView:donorView willBeginDraggingView:dragView];
     
     // cache original frame
-    recognizer.initialViewFrame = recognizer.view.frame;
+    recognizer.initialViewFrame = dragView.frame;
     
     // cache original donor view
     recognizer.donorView = donorView;
     
     // cache original superview, subview index
-    [self saveViewHierarchySlotOfView:recognizer.view toRecognizer:recognizer];
+    [self saveViewHierarchySlotOfView:dragView toRecognizer:recognizer];
     
     // move to top of rootVC's view
-    [recognizer.view.window.rootViewController.view motionlessAddSubview:recognizer.view];
+    [dragView.window.rootViewController.view motionlessAddSubview:dragView];
     
     // apply pickup effects & cache undo function
-    [self applyPickupEffectToView:recognizer.view saveUndoToRecognizer:recognizer];
+    [self applyPickupEffectToView:dragView saveUndoToRecognizer:recognizer];
     
     // tell just-picked-up object's Donor's delegate about the drag
     if ([donorDelegate respondsToSelector:@selector(donorView:didBeginDraggingView:)])
-      [donorDelegate donorView:donorView didBeginDraggingView:recognizer.view];
+      [donorDelegate donorView:donorView didBeginDraggingView:dragView];
   }
   
   // MOVE EVENT
@@ -161,20 +161,19 @@ static MCKDragDropServer* sharedServer = nil;
     //PSLogInfo(@"state = %u. StateChanged => movement",recognizer.state);
     
     // move the view to follow the finger's translational motion
-    CGPoint translation = [recognizer translationInView:recognizer.view.superview];
-    recognizer.view.center = CGPointMake(recognizer.view.center.x + translation.x,
-                                         recognizer.view.center.y + translation.y);
-    [recognizer setTranslation:CGPointMake(0, 0) inView:recognizer.view.superview];
+    CGPoint translation = [recognizer translationInView:dragView.superview];
+    dragView.center = CGPointMake(dragView.center.x + translation.x,
+                                  dragView.center.y + translation.y);
+    [recognizer setTranslation:CGPointMake(0, 0) inView:dragView.superview];
   }
   
   // DROP EVENT
   else if (recognizer.state == UIGestureRecognizerStateEnded) {
     PSLogInfo(@"state = %u. StateEnded => drop",recognizer.state);
-    PSLogInfo(@"theView.frame=%@",NSStringFromCGRect(theView.frame));
+    PSLogInfo(@"theView.frame=%@",NSStringFromCGRect(dragView.frame));
     
-    UIView * beingDroppedView = recognizer.view;
-    UIView * absorberView = [self firstAbsorberOfView:recognizer.view];
-    NSObject <MCKDnDAbsorberProtocol> * absorberDelegate = [self delegateForAbsorberView:recognizer.view];
+    UIView * absorberView = [self firstAbsorberOfView:dragView];
+    NSObject <MCKDnDAbsorberProtocol> * absorberDelegate = [self delegateForAbsorberView:dragView];
     
     UIView * donorView = recognizer.donorView;
     NSObject <MCKDnDDonorProtocol>  * donorDelegate = [self delegateForDonorView:donorView];
@@ -182,7 +181,7 @@ static MCKDragDropServer* sharedServer = nil;
     BOOL absorberAcceptedDrop = YES; // Absorbers default to absorbing
     if (absorberView &&
         [absorberDelegate respondsToSelector:@selector(absorberView:canAbsorbDraggingView:)]) {
-      absorberAcceptedDrop = [absorberDelegate absorberView:absorberView canAbsorbDraggingView:beingDroppedView];
+      absorberAcceptedDrop = [absorberDelegate absorberView:absorberView canAbsorbDraggingView:dragView];
     }
     
     const BOOL dropWasAccepted = absorberView && absorberAcceptedDrop;
@@ -191,16 +190,16 @@ static MCKDragDropServer* sharedServer = nil;
     if ( dropWasAccepted ) {
       PSLogInfo(@"absorber accepted the drop");
       if ([donorDelegate respondsToSelector:@selector(donorView:willDonateDraggingView:)])
-        [donorDelegate donorView:donorView willDonateDraggingView:beingDroppedView];
+        [donorDelegate donorView:donorView willDonateDraggingView:dragView];
       
       recognizer.undoPickupEffectOnView();
-      [absorberView motionlessAddSubview:beingDroppedView];
+      [absorberView motionlessAddSubview:dragView];
       
       if ([absorberDelegate respondsToSelector:@selector(absorberView:didAbsorbDraggingView:)])
-        [absorberDelegate absorberView:absorberView didAbsorbDraggingView:beingDroppedView];
+        [absorberDelegate absorberView:absorberView didAbsorbDraggingView:dragView];
       
       if ([donorDelegate respondsToSelector:@selector(donorView:didDonateDraggingView:)])
-        [donorDelegate donorView:donorView didDonateDraggingView:beingDroppedView];
+        [donorDelegate donorView:donorView didDonateDraggingView:dragView];
     }
     
     // DROP EVENT : DROP REJECTED
@@ -209,24 +208,24 @@ static MCKDragDropServer* sharedServer = nil;
       
       // animate slide-back to original position ...
       dispatch_block_t UndoPickupEffects = recognizer.undoPickupEffectOnView;
-      CGRect restoredFrame = [beingDroppedView.superview convertRect:recognizer.initialViewFrame
-                                                            fromView:recognizer.initialViewSuperview];
+      CGRect restoredFrame = [dragView.superview convertRect:recognizer.initialViewFrame
+                                                    fromView:recognizer.initialViewSuperview];
       NSUInteger restoredIndex = recognizer.initialSubviewIndex;
       
       [UIView animateWithDuration:0.3f
                        animations:^{
                          // ... restore absolute frame
-                         beingDroppedView.frame = restoredFrame;
+                         dragView.frame = restoredFrame;
                        }
                        completion:^(BOOL finished) {
                          // ... then restore appearance
                          UndoPickupEffects();
                          // restore view hierarchy
-                         [recognizer.initialViewSuperview motionlessInsertSubview:beingDroppedView
+                         [recognizer.initialViewSuperview motionlessInsertSubview:dragView
                                                                           atIndex:restoredIndex];
                          
                          if ([donorDelegate respondsToSelector:@selector(donorView:didReclaimDraggingView:)])
-                           [donorDelegate donorView:donorView didReclaimDraggingView:beingDroppedView];
+                           [donorDelegate donorView:donorView didReclaimDraggingView:dragView];
                        }];
     }
   }
