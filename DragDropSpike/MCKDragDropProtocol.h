@@ -24,14 +24,14 @@
 /** Tells delegate the user will remove the draggingSubview from the donor */
 -(void) donorView:(UIView*)donor willBeginDraggingView:(UIView*)draggingSubview;
 
-// 1. User picks up an object within Donor's view hierarchy (VH).
-/** Tells delegate the user has removed the draggingSubview from the donor */
+// 1. User picks up an object, removing it from Donor's view hierarchy (VH).
+/** Tells delegate the user has removed draggingSubview from the donor */
 -(void) donorView:(UIView*)donor didBeginDraggingView:(UIView*)draggingSubview;
 
 // 2. Absorber delegate decides if it accepts or rejects the drop
 
 // A.3 Donor yields the draggingSubview to the Absorber.
-/** Tells delegate draggingSubview will soon be 'donated' to absorber view */
+/** Tells delegate draggingSubview will soon enter the absorber's VH */
 -(void) donorView:(UIView*)donor willDonateDraggingView:(UIView*)draggingSubview;
 
 // A.5 Donor notified Absorber has received the view

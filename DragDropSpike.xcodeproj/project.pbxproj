@@ -130,10 +130,10 @@
 			isa = PBXGroup;
 			children = (
 				5EB7E71915B1D0910035A1DC /* MCKDragDropProtocol.h */,
-				5E0F92F915B482D1007A15E5 /* MCKPanGestureRecognizer.h */,
-				5E0F92FA15B482D1007A15E5 /* MCKPanGestureRecognizer.m */,
 				5EBF963715B9994500FBC5CE /* MCKDragDropServer.h */,
 				5EBF963815B9994500FBC5CE /* MCKDragDropServer.m */,
+				5E0F92F915B482D1007A15E5 /* MCKPanGestureRecognizer.h */,
+				5E0F92FA15B482D1007A15E5 /* MCKPanGestureRecognizer.m */,
 			);
 			name = MCKDragDrop;
 			sourceTree = "<group>";
