@@ -145,13 +145,13 @@ static MCKDragDropServer* sharedServer = nil;
     recognizer.donorView = donorView;
     
     // cache original superview, subview index
-    [self saveViewHierarchySlotOfView:dragView toRecognizer:recognizer];
+    [MCKDragDropServer saveViewHierarchySlotOfView:dragView toRecognizer:recognizer];
     
     // move to top of rootVC's view
     [dragView.window.rootViewController.view motionlessAddSubview:dragView];
     
     // apply pickup effects & cache undo function
-    [self applyPickupEffectToView:dragView saveUndoToRecognizer:recognizer];
+    [MCKDragDropServer applyPickupEffectToView:dragView saveUndoToRecognizer:recognizer];
     
     // tell just-picked-up object's Donor's delegate about the drag
     if ([donorDelegate respondsToSelector:@selector(donorView:didBeginDraggingView:)])
@@ -294,14 +294,14 @@ static MCKDragDropServer* sharedServer = nil;
   return retval;
 }
 
--(void) saveViewHierarchySlotOfView:(UIView*)v toRecognizer:(MCKPanGestureRecognizer*)recognizer {
++(void) saveViewHierarchySlotOfView:(UIView*)v toRecognizer:(MCKPanGestureRecognizer*)recognizer {
   recognizer.initialViewFrame = v.frame;
   recognizer.initialViewSuperview = v.superview;
   recognizer.initialSubviewIndex = [v.superview.subviews indexOfObject:v];
 }
 
 
--(void) applyPickupEffectToView:(UIView*)v
++(void) applyPickupEffectToView:(UIView*)v
            saveUndoToRecognizer:(MCKPanGestureRecognizer*)recognizer {
   PSLogInfo(@"");
   // cache original values in restorer function
