@@ -8,6 +8,7 @@
 
 
 #import <QuartzCore/QuartzCore.h>
+#import <objc/runtime.h>
 
 #import "MCKDragDropServer.h"
 #import "MCKPanGestureRecognizer.h"
@@ -31,18 +32,10 @@
 }
 @end
 
-@interface MCKDragDropServer ()
-@property (strong) NSMutableDictionary * donorViews;
-@property (strong) NSMutableDictionary * absorberViews;
-@end
-
 @implementation MCKDragDropServer
-@synthesize donorViews = _donorViews;
-@synthesize absorberViews = _absorberViews;
 
 #pragma mark - Singleton boilerplate
 
-// singleton implementation
 static MCKDragDropServer* sharedServer = nil;
 
 +(MCKDragDropServer*)sharedServer
@@ -52,60 +45,6 @@ static MCKDragDropServer* sharedServer = nil;
     dispatch_once(&pred, ^{ sharedServer = [[self alloc] init]; });
   }
   return sharedServer;
-}
-
--(id)init
-{
-  self = [super init];
-  if (self) {
-    _donorViews = [NSMutableDictionary dictionary];
-    _absorberViews = [NSMutableDictionary dictionary];
-  }
-  return self;
-}
-
-
-
-#pragma mark DnD framework public API
-
-/*
- Registers a view as draggable.
- */
--(void) registerDraggableView:(UIView*)draggableView
-{
-  PSLogInfo(@"");
-  MCKPanGestureRecognizer * panGestureRecognizer =
-  [[MCKPanGestureRecognizer alloc] initWithTarget:self
-                                           action:@selector(handlePan:)];
-  
-  [draggableView addGestureRecognizer:panGestureRecognizer];
-}
-
-// FIXME: Must handle clearing this dictionary as views are removed.
-/*
- Otherwise we could have a collsion where a NEW view happens to have the same
- memory location as a removed view, and the dictionary is still holding on to
- that view (via the NSValue-wrapped pointer) thinking it has its delegate when
- in fact it has the delegate to the removed/dealloced view. 
- 
- Is there some way to register for notifications when a view is dealloced? Then
- we could clear the corresponding dictionary entries when the view disappears.
- 
- If not, is there a way to create a mutable dictionary whose keys are zeroing
- weak references, so that they go to nil (disappear) as soon as their 
- referenced object does?
- 
- If not, instead of dictionaries we could use associated references on the views
- themselves.
- */
--(void) registerDonorView:(UIView*)view delegate:(NSObject<MCKDragDropDonor>*)delegate
-{
-  [self.donorViews setObject:delegate forKey:[NSValue valueWithNonretainedObject:view]];
-}
-
--(void) registerAbsorberView:(UIView*)view delegate:(NSObject<MCKDragDropAbsorber>*)delegate
-{
-  [self.absorberViews setObject:delegate forKey:[NSValue valueWithNonretainedObject:view]];
 }
 
 #pragma mark DnD framework internal methods
@@ -235,7 +174,8 @@ static MCKDragDropServer* sharedServer = nil;
  
  @param pickedUpView the view just picked up by the user
  
- The Donor view is the closest ancestor of pickedUpView that is a MCKDnDDonor.
+ The Donor view for a DnD session is the closest ancestor of pickedUpView that 
+ has been designated as a donor via a call to registerDonorView:delegate:
  */
 -(UIView*) donorViewOfView:(UIView*)pickedUpView
 {
@@ -250,16 +190,21 @@ static MCKDragDropServer* sharedServer = nil;
 }
 
 /**
- Returns first eligible absorber view beneath the dropped view
+ Returns any eligible absorber view beneath the dropped view
  
  @param justDroppedView view being dropped
+
+ A view is designated as an absorber if it has been registered as such via a
+ call to registerAbsorberView:delegate:. The eligible absorber view, for a given
+ drop, is just the first hit test view under the center of the dropped view
+ that is also a designated absorber.
  
- A view eligible to receive a drop if it is designated an absorber, is
- not hidden, is in its superview's bounds, and has userInteractionEnabled. The
- first eligible view is the view deepest in the view hierarchy. In other words,
- traverses possible dropped on view's using the same traversal rule as
+ A hit test view must be not hidden, in its superview's bounds, and have 
+ userInteractionEnabled. The first hit test view is view meeting those criteria
+ that is deepest in view hierarchy. In short, this function traverses possible 
+ dropped-on viewss using the same traversal rule as
  -(UIView*)[UIView hitTest:withEvent:, searching for the first candidate that
- conforms to MCKDnDAbsorberView.
+ has also been designated as a donor.
  
  */
 -(UIView*) firstAbsorberOfView:(UIView*)justDroppedView {
@@ -320,24 +265,72 @@ static MCKDragDropServer* sharedServer = nil;
   v.backgroundColor = [UIColor greenColor]; // for debugging
 }
 
--(BOOL)isDesignatedAbsorberView:(UIView *)view
+/*
+ Registers a view as draggable.
+ */
+-(void) registerDraggableView:(UIView*)draggableView
 {
-  return ([self.absorberViews objectForKey:[NSValue valueWithNonretainedObject:view]] != nil );
+  PSLogInfo(@"");
+  MCKPanGestureRecognizer * panGestureRecognizer =
+  [[MCKPanGestureRecognizer alloc] initWithTarget:self
+                                           action:@selector(handlePan:)];
+  
+  [draggableView addGestureRecognizer:panGestureRecognizer];
+}
+
+
+/* The following three methods implement a dictionary from views to their 
+ delegates. Using associated objects, rather than dictionary, so that we don't 
+ need to do housekeeping on the dictionary to handle keys
+ going invalid when views disappear.
+ */
+static char donorKey;
+-(void) registerDonorView:(UIView*)view delegate:(NSObject<MCKDragDropDonor>*)delegate
+{
+  objc_setAssociatedObject(view, &donorKey, delegate, OBJC_ASSOCIATION_ASSIGN);
+}
+
+-(NSObject<MCKDragDropDonor>*) delegateForDonorView:(UIView*)view {
+  return objc_getAssociatedObject(view, &donorKey);
 }
 
 -(BOOL)isDesignatedDonorView:(UIView*)view
 {
-  return ([self.donorViews objectForKey:[NSValue valueWithNonretainedObject:view]] != nil );
+  return ([self delegateForDonorView:view] != nil );
 }
 
--(NSObject<MCKDragDropDonor>*) delegateForDonorView:(UIView*)view {
-  return [self.donorViews objectForKey:[NSValue valueWithNonretainedObject:view]];
+
+static char absorberKey;
+-(void) registerAbsorberView:(UIView*)view delegate:(NSObject<MCKDragDropAbsorber>*)delegate
+{
+  objc_setAssociatedObject(view, &absorberKey, delegate, OBJC_ASSOCIATION_ASSIGN);
 }
 
 -(NSObject<MCKDragDropAbsorber>*) delegateForAbsorberView:(UIView*)view {
-  return [self.absorberViews objectForKey:[NSValue valueWithNonretainedObject:view]];
+  return objc_getAssociatedObject(view, &absorberKey);
 }
 
+-(BOOL)isDesignatedAbsorberView:(UIView *)view
+{
+  return ([self delegateForAbsorberView:view] != nil );
+}
 
+// FIXME: Must handle clearing this dictionary as views are removed.
+/*
+ Otherwise we could have a collsion where a NEW view happens to have the same
+ memory location as a removed view, and the dictionary is still holding on to
+ that view (via the NSValue-wrapped pointer) thinking it has its delegate when
+ in fact it has the delegate to the removed/dealloced view.
+ 
+ Is there some way to register for notifications when a view is dealloced? Then
+ we could clear the corresponding dictionary entries when the view disappears.
+ 
+ If not, is there a way to create a mutable dictionary whose keys are zeroing
+ weak references, so that they go to nil (disappear) as soon as their
+ referenced object does?
+ 
+ If not, instead of dictionaries we could use associated references on the views
+ themselves.
+ */
 
 @end

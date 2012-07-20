@@ -55,15 +55,21 @@
 
 /**
  Make view able to donate (i.e., lose) a descendant, draggable view via DnD.
+
  @param view view that will become a designated donor
  @param delegate object to receive callbacks during the DnD session
+
+ Views hold only weak references to their delegates.
  */
 -(void) registerDonorView:(UIView*)view delegate:(NSObject<MCKDragDropDonor>*)delegate;
 
 /**
  Make view able to absorb a dropped view into its view hierarchy.
+
  @param view view that will become a designated absorber
  @param delegate object to receive callbacks during the DnD session
+
+ Views hold only weak references to their delegates.
  */
 -(void) registerAbsorberView:(UIView*)view delegate:(NSObject<MCKDragDropAbsorber>*)delegate;
 
