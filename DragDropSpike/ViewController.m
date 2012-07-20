@@ -62,58 +62,77 @@
 }
 
 
-/*
- 
-  // should compute (and cache?) donorView at pick-up time
+#pragma mark DnD framework public API
 
-  // should assign (potential) absorberView at drop time
-  // at drop time, need to know donorView to order a reclaim.
-  // so how to remember donorView?
-  // => Q: does this mean this info needs to be cached in a drag session object?
-  
+/*
+ STAGE 0.
+ 
+ Cache info and do any setup necessary to support the view being dragged later.
+ 
+ This is now implemented in this VC, but maybe this should be part of the DnD
+ framework.
  */
--(void)handleDraggablePan:(UIPanGestureRecognizer*)theRecognizer
+-(void) registerDraggableView:(UIView*)descendantView
+{
+  PSLogInfo(@"");
+  // Q: do we also need to cache the donating view (in case it's not self)?
+  
+  // Attach a UIGestureRecognizer to the draggableView to make it draggable.
+  MCKPanGestureRecognizer * panGestureRecognizer =
+  [[MCKPanGestureRecognizer alloc] initWithTarget:self
+                                           action:@selector(handlePan:)];
+  
+  [self.draggableItem addGestureRecognizer:panGestureRecognizer];
+}
+
+#pragma mark DnD framework internal methods
+
+/*
+ Handle a pan gesture from a MCKPanGestureRecognizer
+ 
+ */
+-(void)handlePan:(MCKPanGestureRecognizer*)theRecognizer
 {
   MCKPanGestureRecognizer * recognizer = (MCKPanGestureRecognizer*)theRecognizer;
   
-  // FIXME: should be set at intialization
+  // FIXME: should lookup delegates from registration info
   NSObject <MCKDnDAbsorberProtocol> * absorberDelegate = self;
   NSObject <MCKDnDDonorProtocol>    * donorDelegate = self;
   
   UIView * donorView; // will be detected at drag time
   UIView * absorberView; // will be detected at drop time
-
+  
   
   UIView * theView = recognizer.view;
   
   if (recognizer.state == UIGestureRecognizerStatePossible) {
     PSLogInfo(@"state = %u. Possible",recognizer.state);
   }
-
+  
   // PICKUP EVENT
   else if (recognizer.state == UIGestureRecognizerStateBegan) {
     PSLogInfo(@"state = %u. StateBegan => pickup",recognizer.state);
-
+    
+    // tell donor that view is about to be detached
+    donorView = [self donorViewOfView:recognizer.view];
+    [donorDelegate donorView:donorView willBeginDraggingView:recognizer.view];
+    
     // cache original frame
     recognizer.initialViewFrame = recognizer.view.frame;
-   
+    
     // cache original superview, subview index
     [self saveViewHierarchySlotOfView:recognizer.view toRecognizer:recognizer];
-
-    // tell donor view is about to be detached
-    donorView = [self  donorViewOfView:recognizer.view];
-    [donorDelegate donorView:donorView willBeginDraggingView:recognizer.view];
     
     // move to top of rootVC's view
     [recognizer.view.window.rootViewController.view motionlessAddSubview:recognizer.view];
     
     // apply pickup effects & cache undo function
     [self applyPickupEffectToView:recognizer.view saveUndoToRecognizer:recognizer];
-
+    
     // tell just-picked-up object's Donor's delegate about the drag
     [donorDelegate donorView:donorView didBeginDraggingView:recognizer.view];
   }
-
+  
   // MOVE EVENT
   else if (recognizer.state == UIGestureRecognizerStateChanged) {
     //PSLogInfo(@"state = %u. StateChanged => movement",recognizer.state);
@@ -124,14 +143,14 @@
                                          recognizer.view.center.y + translation.y);
     [recognizer setTranslation:CGPointMake(0, 0) inView:recognizer.view.superview];
   }
-
+  
   // DROP EVENT
   else if (recognizer.state == UIGestureRecognizerStateEnded) {
     PSLogInfo(@"state = %u. StateEnded => drop",recognizer.state);
     PSLogInfo(@"theView.frame=%@",NSStringFromCGRect(theView.frame));
     
     UIView * beingDroppedView = recognizer.view;
-    absorberView = [self absorberOfView:recognizer.view];
+    absorberView = [self firstAbsorberOfView:recognizer.view];
     const BOOL dropWasAccepted = absorberView && [absorberDelegate absorberView:absorberView
                                                           canAbsorbDraggingView:beingDroppedView];
     // DROP ACCEPTED
@@ -173,8 +192,6 @@
   }
 }
 
-#pragma mark DnD framework helpers
-
 /**
   Finds the donor UIView of the pickedUpView. 
 
@@ -187,7 +204,7 @@
   UIView * retval = pickedUpView;
   while ( (retval = pickedUpView.superview) )
   {
-    if ( [self isADonorView:retval] )
+    if ( [self isDesignatedDonorView:retval] )
       break;
   }
   PSLogInfo(@"search found donor = %@",retval);
@@ -207,7 +224,7 @@
  conforms to MCKDnDAbsorberView.
 
  */
--(UIView*) absorberOfView:(UIView*)justDroppedView {
+-(UIView*) firstAbsorberOfView:(UIView*)justDroppedView {
   const UIWindow * win = justDroppedView.window;
   const CGPoint dropPoint = [win convertPoint:justDroppedView.center
                                      fromView:justDroppedView.superview];
@@ -217,7 +234,7 @@
    // get the next hitTest winner
   while ( (retval = [win hitTest:dropPoint withEvent:nil]) ) {
     // if it's an absorber, we're done
-    if ([self isAnAbsorberView:retval])
+    if ([self isDesignatedAbsorberView:retval])
       break;
     else {
       // it was a hitTestWinner, but not an absorber
@@ -232,28 +249,6 @@
   PSLogInfo(@"search found absorber = %@",retval);
   return retval;
 }
-
-/*
- STAGE 0.
- 
- Cache info and do any setup necessary to support the view being dragged later.
- 
- This is now implemented in this VC, but maybe this should be part of the DnD
- framework.
- */
--(void) registerDraggableView:(UIView*)descendantView
-{
-  PSLogInfo(@"");
-  // Q: do we also need to cache the donating view (in case it's not self)?
-  
-  // Attach a UIGestureRecognizer to the draggableView to make it draggable.
-  MCKPanGestureRecognizer * panGestureRecognizer =
-  [[MCKPanGestureRecognizer alloc] initWithTarget:self
-                                          action:@selector(handleDraggablePan:)];
-  
-  [self.draggableItem addGestureRecognizer:panGestureRecognizer];
-}
-
 
 -(void) saveViewHierarchySlotOfView:(UIView*)v toRecognizer:(MCKPanGestureRecognizer*)recognizer {
   recognizer.initialViewFrame = v.frame;
@@ -285,6 +280,24 @@
   v.layer.shadowRadius = 25;
   v.layer.shadowOpacity = 1.0;
   v.backgroundColor = [UIColor greenColor]; // for debugging
+}
+
+// FIXME: should work based on registration
+-(BOOL)isDesignatedAbsorberView:(UIView *)view
+{
+  if (view == self.rightContainer || view == self.leftContainer)
+    return YES;
+  else
+    return NO;
+}
+
+// FIXME: should work based on registration
+-(BOOL)isDesignatedDonorView:(UIView*)view
+{
+  if (view == self.rightContainer || view == self.leftContainer)
+    return YES;
+  else
+    return NO;
 }
 
 #pragma mark  MCKDnDDonorProtocol delegate
@@ -344,7 +357,7 @@
 }
 
 /* STAGE 4
- this method is repsonsible for taking dragginView into the absorber's VH.
+ Tells absorber that draggingView has been added to its VH.
  */
 -(void) absorberView:(UIView*)absorber didAbsorbDraggingView:(UIView*)draggingSubview
 {
@@ -352,19 +365,4 @@
   return;
 }
 
--(BOOL)isAnAbsorberView:(UIView *)view
-{
-  if (view == self.rightContainer || view == self.leftContainer)
-    return YES;
-  else
-    return NO;
-}
-
--(BOOL)isADonorView:(UIView*)view
-{
-  if (view == self.rightContainer || view == self.leftContainer)
-    return YES;
-  else
-    return NO;
-}
 @end
