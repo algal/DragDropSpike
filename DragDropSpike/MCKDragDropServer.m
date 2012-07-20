@@ -85,7 +85,21 @@ static MCKDragDropServer* sharedServer = nil;
 }
 
 // FIXME: Must handle clearing this dictionary as views are removed.
-/* Perhaps use associated references intead of a dict?
+/*
+ Otherwise we could have a collsion where a NEW view happens to have the same
+ memory location as a removed view, and the dictionary is still holding on to
+ that view (via the NSValue-wrapped pointer) thinking it has its delegate when
+ in fact it has the delegate to the removed/dealloced view. 
+ 
+ Is there some way to register for notifications when a view is dealloced? Then
+ we could clear the corresponding dictionary entries when the view disappears.
+ 
+ If not, is there a way to create a mutable dictionary whose keys are zeroing
+ weak references, so that they go to nil (disappear) as soon as their 
+ referenced object does?
+ 
+ If not, instead of dictionaries we could use associated references on the views
+ themselves.
  */
 
 -(void) registerDonorView:(UIView*)view delegate:(NSObject<MCKDnDDonorProtocol>*)delegate

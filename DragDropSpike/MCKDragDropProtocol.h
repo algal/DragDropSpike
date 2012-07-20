@@ -9,16 +9,11 @@
 #import <Foundation/Foundation.h>
 
 /***
- Delegate protocol declaring methods required for drag-and-drop mechanics,
- where a Donor UIView can give up one of its subviews to an Absorber UIView,
- which may accept or reject the draggingSubview.
- 
- 
- Q:
- Should some of these methods be removed, and instead implementers should
- just override the existing UIView methods:
- – (void) [UIView didAddSubview:(UIView*)subview]
- – (void) [UIView willRemoveSubview:(UIView*)subview]
+ Delegate protocol declaring optional methods to notify Donors and Absorbers
+ of the progress of a drag and drop session.
+
+ To make a view drag-and-droppable, or to make it a donor and/or receiver,
+ call the registration methods on the MCKDragDropServer singleton instance.
 
  */
 
