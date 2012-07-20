@@ -12,6 +12,8 @@
 #import "MCKDragDropServer.h"
 #import "MCKPanGestureRecognizer.h"
 
+#define MCK_RECLAIM_ANIMATION_DURATION 0.3f
+
 // helpers for moving views in the view hierarchy but not onscreen
 @implementation UIView (MCKmotionless)
 -(void)motionlessAddSubview:(UIView*)view
@@ -102,12 +104,12 @@ static MCKDragDropServer* sharedServer = nil;
  themselves.
  */
 
--(void) registerDonorView:(UIView*)view delegate:(NSObject<MCKDnDDonorProtocol>*)delegate
+-(void) registerDonorView:(UIView*)view delegate:(NSObject<MCKDragDropDonor>*)delegate
 {
   [self.donorViews setObject:delegate forKey:[NSValue valueWithNonretainedObject:view]];
 }
 
--(void) registerAbsorberView:(UIView*)view delegate:(NSObject<MCKDnDAbsorberProtocol>*)delegate
+-(void) registerAbsorberView:(UIView*)view delegate:(NSObject<MCKDragDropAbsorber>*)delegate
 {
   [self.absorberViews setObject:delegate forKey:[NSValue valueWithNonretainedObject:view]];
 }
@@ -132,7 +134,7 @@ static MCKDragDropServer* sharedServer = nil;
     
     // tell donor that view is about to be detached
     UIView * donorView = [self donorViewOfView:dragView];
-    NSObject <MCKDnDDonorProtocol>  * donorDelegate = [self delegateForDonorView:donorView];
+    NSObject <MCKDragDropDonor>  * donorDelegate = [self delegateForDonorView:donorView];
     if ([donorDelegate respondsToSelector:@selector(donorView:willBeginDraggingView:)])
       [donorDelegate donorView:donorView willBeginDraggingView:dragView];
     
@@ -173,10 +175,10 @@ static MCKDragDropServer* sharedServer = nil;
     PSLogInfo(@"theView.frame=%@",NSStringFromCGRect(dragView.frame));
     
     UIView * absorberView = [self firstAbsorberOfView:dragView];
-    NSObject <MCKDnDAbsorberProtocol> * absorberDelegate = [self delegateForAbsorberView:dragView];
+    NSObject <MCKDragDropAbsorber> * absorberDelegate = [self delegateForAbsorberView:dragView];
     
     UIView * donorView = recognizer.donorView;
-    NSObject <MCKDnDDonorProtocol>  * donorDelegate = [self delegateForDonorView:donorView];
+    NSObject <MCKDragDropDonor>  * donorDelegate = [self delegateForDonorView:donorView];
     
     BOOL absorberAcceptedDrop = YES; // Absorbers default to absorbing
     if (absorberView &&
@@ -212,7 +214,7 @@ static MCKDragDropServer* sharedServer = nil;
                                                     fromView:recognizer.initialViewSuperview];
       NSUInteger restoredIndex = recognizer.initialSubviewIndex;
       
-      [UIView animateWithDuration:0.3f
+      [UIView animateWithDuration:MCK_RECLAIM_ANIMATION_DURATION
                        animations:^{
                          // ... restore absolute frame
                          dragView.frame = restoredFrame;
@@ -334,11 +336,11 @@ static MCKDragDropServer* sharedServer = nil;
   return ([self.donorViews objectForKey:[NSValue valueWithNonretainedObject:view]] != nil );
 }
 
--(NSObject<MCKDnDDonorProtocol>*) delegateForDonorView:(UIView*)view {
+-(NSObject<MCKDragDropDonor>*) delegateForDonorView:(UIView*)view {
   return [self.donorViews objectForKey:[NSValue valueWithNonretainedObject:view]];
 }
 
--(NSObject<MCKDnDAbsorberProtocol>*) delegateForAbsorberView:(UIView*)view {
+-(NSObject<MCKDragDropAbsorber>*) delegateForAbsorberView:(UIView*)view {
   return [self.absorberViews objectForKey:[NSValue valueWithNonretainedObject:view]];
 }
 

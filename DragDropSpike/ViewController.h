@@ -10,7 +10,7 @@
 
 #import "MCKDragDropProtocol.h"
 
-@interface ViewController : UIViewController <MCKDnDDonorProtocol, MCKDnDAbsorberProtocol>
+@interface ViewController : UIViewController <MCKDragDropDonor, MCKDragDropAbsorber>
 @property (weak, nonatomic) IBOutlet UIView *leftContainer;
 @property (weak, nonatomic) IBOutlet UIView *rightContainer;
 @property (weak, nonatomic) IBOutlet UIView *draggableItem;

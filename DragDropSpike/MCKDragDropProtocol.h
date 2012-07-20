@@ -18,7 +18,7 @@
  */
 
 
-@protocol MCKDnDDonorProtocol <NSObject>
+@protocol MCKDragDropDonor <NSObject>
 
 @optional
 /** Tells delegate the user will remove the draggingSubview from the donor */
@@ -51,7 +51,7 @@
 @end
 
 
-@protocol MCKDnDAbsorberProtocol <NSObject>
+@protocol MCKDragDropAbsorber <NSObject>
 
 @optional
 // 2. Absorber view decides if it accepts or rejects the drop (-> A.3 or B.3)

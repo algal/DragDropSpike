@@ -58,13 +58,13 @@
  @param view view that will become a designated donor
  @param delegate object to receive callbacks during the DnD session
  */
--(void) registerDonorView:(UIView*)view delegate:(NSObject<MCKDnDDonorProtocol>*)delegate;
+-(void) registerDonorView:(UIView*)view delegate:(NSObject<MCKDragDropDonor>*)delegate;
 
 /**
  Make view able to absorb a dropped view into its view hierarchy.
  @param view view that will become a designated absorber
  @param delegate object to receive callbacks during the DnD session
  */
--(void) registerAbsorberView:(UIView*)view delegate:(NSObject<MCKDnDAbsorberProtocol>*)delegate;
+-(void) registerAbsorberView:(UIView*)view delegate:(NSObject<MCKDragDropAbsorber>*)delegate;
 
 @end
