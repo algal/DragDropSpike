@@ -109,12 +109,8 @@
 				5EB7E70E15B1CB9F0035A1DC /* MainStoryboard.storyboard */,
 				5EB7E71115B1CB9F0035A1DC /* ViewController.h */,
 				5EB7E71215B1CB9F0035A1DC /* ViewController.m */,
-				5EB7E71915B1D0910035A1DC /* MCKDragDropProtocol.h */,
+				5EBF964015B99DAF00FBC5CE /* MCKDragDrop */,
 				5EB7E70315B1CB9F0035A1DC /* Supporting Files */,
-				5E0F92F915B482D1007A15E5 /* MCKPanGestureRecognizer.h */,
-				5E0F92FA15B482D1007A15E5 /* MCKPanGestureRecognizer.m */,
-				5EBF963715B9994500FBC5CE /* MCKDragDropServer.h */,
-				5EBF963815B9994500FBC5CE /* MCKDragDropServer.m */,
 			);
 			path = DragDropSpike;
 			sourceTree = "<group>";
@@ -128,6 +124,18 @@
 				5EB7E70A15B1CB9F0035A1DC /* DragDropSpike-Prefix.pch */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		5EBF964015B99DAF00FBC5CE /* MCKDragDrop */ = {
+			isa = PBXGroup;
+			children = (
+				5EB7E71915B1D0910035A1DC /* MCKDragDropProtocol.h */,
+				5E0F92F915B482D1007A15E5 /* MCKPanGestureRecognizer.h */,
+				5E0F92FA15B482D1007A15E5 /* MCKPanGestureRecognizer.m */,
+				5EBF963715B9994500FBC5CE /* MCKDragDropServer.h */,
+				5EBF963815B9994500FBC5CE /* MCKDragDropServer.m */,
+			);
+			name = MCKDragDrop;
 			sourceTree = "<group>";
 		};
 		5EDEE54A15B43C97004C46B9 /* DCIntrospect */ = {

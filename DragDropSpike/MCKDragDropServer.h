@@ -7,7 +7,14 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "MCKDragDropProtocol.h"
 
 @interface MCKDragDropServer : NSObject
+
++(MCKDragDropServer*)sharedServer;
+
+-(void) registerDraggableView:(UIView*)draggableView;
+-(void) registerDonorView:(UIView*)view delegate:(NSObject<MCKDnDDonorProtocol>*)delegate;
+-(void) registerAbsorberView:(UIView*)view delegate:(NSObject<MCKDnDAbsorberProtocol>*)delegate;
 
 @end
