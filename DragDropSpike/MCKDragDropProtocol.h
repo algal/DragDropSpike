@@ -25,6 +25,7 @@
 
 @protocol MCKDnDDonorProtocol <NSObject>
 
+@optional
 /** Tells delegate the user will remove the draggingSubview from the donor */
 -(void) donorView:(UIView*)donor willBeginDraggingView:(UIView*)draggingSubview;
 
@@ -57,13 +58,15 @@
 
 @protocol MCKDnDAbsorberProtocol <NSObject>
 
+@optional
 // 2. Absorber view decides if it accepts or rejects the drop (-> A.3 or B.3)
 /**
  Reports if an absorber view will accept the drop of draggingSubview.
 
- @param absorber
- @param draggingSubview
- 
+ @param absorber a view designated as an absorber, which is the hit test view for
+        for a drop event located at the center of the draggingSubview
+ @param draggingSubview the view dropped
+
  Reports if an absorber view will accept the drop of a view. This method can 
  apply logic that limits the effective valid drop zone of the absorber view, or 
  that accepts the drop of certain views but not others.
@@ -77,7 +80,11 @@
  contain the drop point within its bounds. (The drop point is the center of the
  dropped view.)
  
- A view is designed an absorber view if:
+ If this optional method is not implemented, the DnD framework defaults to 
+ assuming the absorber CAN accept the view.
+
+ 
+ To designate a view as an absorber,
  
  */
 -(BOOL) absorberView:(UIView*)absorber canAbsorbDraggingView:(UIView*)draggingSubview;

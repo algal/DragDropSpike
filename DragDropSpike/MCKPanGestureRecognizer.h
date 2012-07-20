@@ -37,6 +37,7 @@
 @property (assign) CGRect initialViewFrame;
 @property (strong) UIView * initialViewSuperview;
 @property (assign) NSUInteger initialSubviewIndex;
+@property (strong) UIView * donorView;
 
 /* (lowercase because a property, or uppercase because a function?) */
 @property (strong) dispatch_block_t undoPickupEffectOnView;

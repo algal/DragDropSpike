@@ -18,6 +18,7 @@
 
 // helpers for moving views in the view hierarchy but not onscreen
 @implementation UIView (MCKmotionless)
+// TODO: move these two into DnD internal
 -(void)motionlessAddSubview:(UIView*)view
 {
   CGRect newFrame = [view.superview convertRect:view.frame toView:self];
@@ -33,6 +34,12 @@
 }
 @end
 
+// TODO: refactor into DnD
+@interface ViewController ()
+@property (strong) NSMutableDictionary * donorViews;
+@property (strong) NSMutableDictionary * absorberViews;
+@end
+
 
 @implementation ViewController
 
@@ -40,11 +47,24 @@
 @synthesize rightContainer;
 @synthesize draggableItem;
 
+// TODO: refactor into DnD
+@synthesize donorViews,absorberViews;
+
+
+
 - (void)viewDidLoad
 {
   [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
+  
+  self.donorViews = [NSMutableDictionary dictionary];
+  self.absorberViews = [NSMutableDictionary dictionary];
+  
   [self registerDraggableView:draggableItem];
+  [self registerDonorView:self.leftContainer delegate:self];
+  [self registerDonorView:self.rightContainer delegate:self];
+  [self registerAbsorberView:self.leftContainer delegate:self];
+  [self registerAbsorberView:self.rightContainer delegate:self];
 }
 
 - (void)viewDidUnload
@@ -85,24 +105,28 @@
   [self.draggableItem addGestureRecognizer:panGestureRecognizer];
 }
 
+-(void) registerDonorView:(UIView*)view delegate:(NSObject<MCKDnDDonorProtocol>*)delegate
+{
+  PSLogInfo(@"");
+  BOOL conforms = [[NSValue valueWithNonretainedObject:view] conformsToProtocol:@protocol(NSCopying)];
+  PSLogInfo(@"key is valid: %@", conforms ? @"YES" : @"NON");
+  [self.donorViews setObject:delegate forKey:[NSValue valueWithNonretainedObject:view]];
+  PSLogInfo(@"");
+}
+
+-(void) registerAbsorberView:(UIView*)view delegate:(NSObject<MCKDnDAbsorberProtocol>*)delegate
+{
+  [self.absorberViews setObject:delegate forKey:[NSValue valueWithNonretainedObject:view]];
+}
+
 #pragma mark DnD framework internal methods
 
 /*
  Handle a pan gesture from a MCKPanGestureRecognizer
  
  */
--(void)handlePan:(MCKPanGestureRecognizer*)theRecognizer
+-(void)handlePan:(MCKPanGestureRecognizer*)recognizer
 {
-  MCKPanGestureRecognizer * recognizer = (MCKPanGestureRecognizer*)theRecognizer;
-  
-  // FIXME: should lookup delegates from registration info
-  NSObject <MCKDnDAbsorberProtocol> * absorberDelegate = self;
-  NSObject <MCKDnDDonorProtocol>    * donorDelegate = self;
-  
-  UIView * donorView; // will be detected at drag time
-  UIView * absorberView; // will be detected at drop time
-  
-  
   UIView * theView = recognizer.view;
   
   if (recognizer.state == UIGestureRecognizerStatePossible) {
@@ -114,15 +138,20 @@
     PSLogInfo(@"state = %u. StateBegan => pickup",recognizer.state);
     
     // tell donor that view is about to be detached
-    donorView = [self donorViewOfView:recognizer.view];
-    [donorDelegate donorView:donorView willBeginDraggingView:recognizer.view];
+    UIView * donorView = [self donorViewOfView:recognizer.view];
+    NSObject <MCKDnDDonorProtocol>  * donorDelegate = [self delegateForDonorView:donorView];
+    if ([donorDelegate respondsToSelector:@selector(donorView:willBeginDraggingView:)])
+      [donorDelegate donorView:donorView willBeginDraggingView:recognizer.view];
     
     // cache original frame
     recognizer.initialViewFrame = recognizer.view.frame;
     
+    // cache original donor view
+    recognizer.donorView = donorView;
+    
     // cache original superview, subview index
     [self saveViewHierarchySlotOfView:recognizer.view toRecognizer:recognizer];
-    
+
     // move to top of rootVC's view
     [recognizer.view.window.rootViewController.view motionlessAddSubview:recognizer.view];
     
@@ -130,7 +159,8 @@
     [self applyPickupEffectToView:recognizer.view saveUndoToRecognizer:recognizer];
     
     // tell just-picked-up object's Donor's delegate about the drag
-    [donorDelegate donorView:donorView didBeginDraggingView:recognizer.view];
+    if ([donorDelegate respondsToSelector:@selector(donorView:didBeginDraggingView:)])
+      [donorDelegate donorView:donorView didBeginDraggingView:recognizer.view];
   }
   
   // MOVE EVENT
@@ -150,19 +180,37 @@
     PSLogInfo(@"theView.frame=%@",NSStringFromCGRect(theView.frame));
     
     UIView * beingDroppedView = recognizer.view;
-    absorberView = [self firstAbsorberOfView:recognizer.view];
-    const BOOL dropWasAccepted = absorberView && [absorberDelegate absorberView:absorberView
-                                                          canAbsorbDraggingView:beingDroppedView];
-    // DROP ACCEPTED
+    UIView * absorberView = [self firstAbsorberOfView:recognizer.view];
+    NSObject <MCKDnDAbsorberProtocol> * absorberDelegate = [self delegateForAbsorberView:recognizer.view];
+    
+    UIView * donorView = recognizer.donorView;
+    NSObject <MCKDnDDonorProtocol>  * donorDelegate = [self delegateForDonorView:donorView];
+    
+    BOOL absorberAcceptedDrop = YES; // Absorbers default to absorbing
+    if (absorberView &&
+        [absorberDelegate respondsToSelector:@selector(absorberView:canAbsorbDraggingView:)]) {
+      absorberAcceptedDrop = [absorberDelegate absorberView:absorberView canAbsorbDraggingView:beingDroppedView];
+    }
+    
+    const BOOL dropWasAccepted = absorberView && absorberAcceptedDrop;
+                                                 
+    // DROP EVENT : DROP ACCEPTED
     if ( dropWasAccepted ) {
       PSLogInfo(@"absorber accepted the drop");
-      [donorDelegate donorView:donorView willDonateDraggingView:beingDroppedView];
+      if ([donorDelegate respondsToSelector:@selector(donorView:willDonateDraggingView:)])
+        [donorDelegate donorView:donorView willDonateDraggingView:beingDroppedView];
+
       recognizer.undoPickupEffectOnView();
       [absorberView motionlessAddSubview:beingDroppedView];
-      [absorberDelegate absorberView:absorberView didAbsorbDraggingView:beingDroppedView];
-      [donorDelegate donorView:donorView didDonateDraggingView:beingDroppedView];
+
+      if ([absorberDelegate respondsToSelector:@selector(absorberView:didAbsorbDraggingView:)])
+        [absorberDelegate absorberView:absorberView didAbsorbDraggingView:beingDroppedView];
+
+      if ([donorDelegate respondsToSelector:@selector(donorView:didDonateDraggingView:)])
+        [donorDelegate donorView:donorView didDonateDraggingView:beingDroppedView];
     }
-    // DROP REJECTED
+    
+    // DROP EVENT : DROP REJECTED
     else {
       PSLogInfo(@"absorber rejected the drop");
       
@@ -183,7 +231,9 @@
                          // restore view hierarchy
                          [recognizer.initialViewSuperview motionlessInsertSubview:beingDroppedView
                                                                           atIndex:restoredIndex];
-                         [donorDelegate donorView:donorView didReclaimDraggingView:beingDroppedView];
+                         
+                         if ([donorDelegate respondsToSelector:@selector(donorView:didReclaimDraggingView:)])
+                           [donorDelegate donorView:donorView didReclaimDraggingView:beingDroppedView];
                        }];
     }
   }
@@ -282,22 +332,22 @@
   v.backgroundColor = [UIColor greenColor]; // for debugging
 }
 
-// FIXME: should work based on registration
 -(BOOL)isDesignatedAbsorberView:(UIView *)view
 {
-  if (view == self.rightContainer || view == self.leftContainer)
-    return YES;
-  else
-    return NO;
+  return ([self.absorberViews objectForKey:[NSValue valueWithNonretainedObject:view]] != nil );
 }
 
-// FIXME: should work based on registration
 -(BOOL)isDesignatedDonorView:(UIView*)view
 {
-  if (view == self.rightContainer || view == self.leftContainer)
-    return YES;
-  else
-    return NO;
+  return ([self.donorViews objectForKey:[NSValue valueWithNonretainedObject:view]] != nil );
+}
+
+-(NSObject<MCKDnDDonorProtocol>*) delegateForDonorView:(UIView*)view {
+  return [self.donorViews objectForKey:[NSValue valueWithNonretainedObject:view]];
+  }
+
+-(NSObject<MCKDnDAbsorberProtocol>*) delegateForAbsorberView:(UIView*)view {
+  return [self.absorberViews objectForKey:[NSValue valueWithNonretainedObject:view]];
 }
 
 #pragma mark  MCKDnDDonorProtocol delegate

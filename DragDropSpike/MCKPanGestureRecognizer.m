@@ -9,6 +9,6 @@
 #import "MCKPanGestureRecognizer.h"
 
 @implementation MCKPanGestureRecognizer
-@synthesize initialViewFrame, initialViewSuperview, initialSubviewIndex;
+@synthesize initialViewFrame, initialViewSuperview, initialSubviewIndex,donorView;
 @synthesize undoPickupEffectOnView;
 @end

@@ -16,6 +16,7 @@
 		5EB7E70D15B1CB9F0035A1DC /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 5EB7E70C15B1CB9F0035A1DC /* AppDelegate.m */; };
 		5EB7E71015B1CB9F0035A1DC /* MainStoryboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5EB7E70E15B1CB9F0035A1DC /* MainStoryboard.storyboard */; };
 		5EB7E71315B1CB9F0035A1DC /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5EB7E71215B1CB9F0035A1DC /* ViewController.m */; };
+		5EBF963915B9994500FBC5CE /* MCKDragDropServer.m in Sources */ = {isa = PBXBuildFile; fileRef = 5EBF963815B9994500FBC5CE /* MCKDragDropServer.m */; };
 		5EDEE55515B43CA8004C46B9 /* DCCrossHairView.m in Sources */ = {isa = PBXBuildFile; fileRef = 5EDEE54D15B43CA8004C46B9 /* DCCrossHairView.m */; settings = {COMPILER_FLAGS = " -fno-objc-arc"; }; };
 		5EDEE55615B43CA8004C46B9 /* DCFrameView.m in Sources */ = {isa = PBXBuildFile; fileRef = 5EDEE54F15B43CA8004C46B9 /* DCFrameView.m */; settings = {COMPILER_FLAGS = " -fno-objc-arc"; }; };
 		5EDEE55715B43CA8004C46B9 /* DCIntrospect.m in Sources */ = {isa = PBXBuildFile; fileRef = 5EDEE55115B43CA8004C46B9 /* DCIntrospect.m */; settings = {COMPILER_FLAGS = " -fno-objc-arc"; }; };
@@ -41,6 +42,8 @@
 		5EB7E71215B1CB9F0035A1DC /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		5EB7E71915B1D0910035A1DC /* MCKDragDropProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MCKDragDropProtocol.h; sourceTree = "<group>"; };
 		5EB7E71E15B1D8C30035A1DC /* PSLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PSLog.h; sourceTree = "<group>"; };
+		5EBF963715B9994500FBC5CE /* MCKDragDropServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MCKDragDropServer.h; sourceTree = "<group>"; };
+		5EBF963815B9994500FBC5CE /* MCKDragDropServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MCKDragDropServer.m; sourceTree = "<group>"; };
 		5EDEE54C15B43CA8004C46B9 /* DCCrossHairView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DCCrossHairView.h; sourceTree = "<group>"; };
 		5EDEE54D15B43CA8004C46B9 /* DCCrossHairView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DCCrossHairView.m; sourceTree = "<group>"; };
 		5EDEE54E15B43CA8004C46B9 /* DCFrameView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DCFrameView.h; sourceTree = "<group>"; };
@@ -110,6 +113,8 @@
 				5EB7E70315B1CB9F0035A1DC /* Supporting Files */,
 				5E0F92F915B482D1007A15E5 /* MCKPanGestureRecognizer.h */,
 				5E0F92FA15B482D1007A15E5 /* MCKPanGestureRecognizer.m */,
+				5EBF963715B9994500FBC5CE /* MCKDragDropServer.h */,
+				5EBF963815B9994500FBC5CE /* MCKDragDropServer.m */,
 			);
 			path = DragDropSpike;
 			sourceTree = "<group>";
@@ -212,6 +217,7 @@
 				5EDEE55715B43CA8004C46B9 /* DCIntrospect.m in Sources */,
 				5EDEE55815B43CA8004C46B9 /* DCStatusBarOverlay.m in Sources */,
 				5E0F92FB15B482D1007A15E5 /* MCKPanGestureRecognizer.m in Sources */,
+				5EBF963915B9994500FBC5CE /* MCKDragDropServer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
