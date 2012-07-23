@@ -33,13 +33,23 @@
  
  */
 
-@interface MCKPanGestureRecognizer : UIPanGestureRecognizer
+@interface MCKPanGestureRecognizer : UIPanGestureRecognizer <UIGestureRecognizerDelegate>
+
+// properties attached to the GR, in order to track the DnD session
 @property (assign) CGRect initialViewFrame;
 @property (strong) UIView * initialViewSuperview;
 @property (assign) NSUInteger initialSubviewIndex;
 @property (strong) UIView * donorView;
-
-/* (lowercase because a property, or uppercase because a function?) */
 @property (strong) dispatch_block_t undoPickupEffectOnView;
+
+// data transported by DnD from donor to absorber
+@property (strong) id<NSObject> payload;
+
+// delegate method to let MCKDragDropDonorDelegate cancel certain pickups
+-(BOOL) gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer;
            
+-(id)initWithTarget:(id)target action:(SEL)action;
+
 @end
+
+

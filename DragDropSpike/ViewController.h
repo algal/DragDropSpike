@@ -10,12 +10,12 @@
 
 #import "MCKDragDropProtocol.h"
 
-@interface ViewController : UIViewController <MCKDragDropDonor, MCKDragDropAbsorber>
+@interface ViewController : UIViewController<MCKDragDropDonorDelegate,MCKDragDropAbsorberDelegate>
 @property (weak, nonatomic) IBOutlet UIView *leftContainer;
 @property (weak, nonatomic) IBOutlet UIView *rightContainer;
 @property (weak, nonatomic) IBOutlet UIView *draggableItem;
 
-#pragma mark  MCKDnDDonorProtocol delegate
+#pragma mark MCKDragDropDonorDeleaate protocol
 
 -(void) donorView:(UIView*)donor willBeginDraggingView:(UIView*)draggingSubview;
 -(void) donorView:(UIView*)donor didBeginDraggingView:(UIView*)draggingSubview;
@@ -23,7 +23,7 @@
 -(void) donorView:(UIView*)donor didDonateDraggingView:(UIView*)draggingSubview;
 -(void) donorView:(UIView*)donor didReclaimDraggingView:(UIView*)draggingSubview;
 
-#pragma mark MCKDnDAbsorberProtocol delegate
+#pragma mark MCKDragDropAbsorberDeleaate protocol
 
 -(BOOL) absorberView:(UIView*)absorber canAbsorbDraggingView:(UIView*)draggingSubview;
 -(void) absorberView:(UIView*)absorber didAbsorbDraggingView:(UIView*)draggingSubview;

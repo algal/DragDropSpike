@@ -51,55 +51,77 @@ static MCKDragDropServer* sharedServer = nil;
 
 /*
  Handle a pan gesture from a MCKPanGestureRecognizer
- 
  */
 -(void)handlePan:(MCKPanGestureRecognizer*)recognizer
 {
   UIView * dragView = recognizer.view;
   
   if (recognizer.state == UIGestureRecognizerStatePossible) {
-    PSLogInfo(@"state = %u. Possible",recognizer.state);
+    PSLogInfo(@"1. state = %u. Possible",recognizer.state);
   }
   
   // PICKUP EVENT
   else if (recognizer.state == UIGestureRecognizerStateBegan) {
-    PSLogInfo(@"state = %u. StateBegan => pickup",recognizer.state);
+    PSLogInfo(@"2. state = %u. StateBegan => pickup",recognizer.state);
     
+    /* 
+     Assert:
+     recgonizer.donorView has already been initialized in the GR itself.
+     
+     Assert:
+     If defined, [MCKDragDropDonor donorView:shouldBeginDraggingView:] has already returned YES.
+
+     */
+   
+    UIView * donorView = recognizer.donorView;
+    NSObject <MCKDragDropDonorDelegate>  * donorDelegate = [self delegateForDonorView:donorView];
+
+    PSLogInfo(@"3. dragView.frame = %@",NSStringFromCGRect(dragView.frame));
+
+    NSObject * payload;
     // tell donor that view is about to be detached
-    UIView * donorView = [self donorViewOfView:dragView];
-    NSObject <MCKDragDropDonor>  * donorDelegate = [self delegateForDonorView:donorView];
     if ([donorDelegate respondsToSelector:@selector(donorView:willBeginDraggingView:)])
-      [donorDelegate donorView:donorView willBeginDraggingView:dragView];
+      payload = [donorDelegate donorView:donorView willBeginDraggingView:dragView];
     
-    // cache original frame
+    // cache payload
+    recognizer.payload = payload;
+   
+    // cache original frame, donor, superview, etc.
     recognizer.initialViewFrame = dragView.frame;
-    
-    // cache original donor view
     recognizer.donorView = donorView;
-    
-    // cache original superview, subview index
     [MCKDragDropServer saveViewHierarchySlotOfView:dragView toRecognizer:recognizer];
     
+    PSLogInfo(@"5. dragView.frame = %@",NSStringFromCGRect(dragView.frame));
+
     // move to top of rootVC's view
     [dragView.window.rootViewController.view motionlessAddSubview:dragView];
     
+    PSLogInfo(@"6. dragView.frame = %@",NSStringFromCGRect(dragView.frame));
+
     // apply pickup effects & cache undo function
     [MCKDragDropServer applyPickupEffectToView:dragView saveUndoToRecognizer:recognizer];
+    
+    PSLogInfo(@"7. dragView.frame = %@",NSStringFromCGRect(dragView.frame));
     
     // tell just-picked-up object's Donor's delegate about the drag
     if ([donorDelegate respondsToSelector:@selector(donorView:didBeginDraggingView:)])
       [donorDelegate donorView:donorView didBeginDraggingView:dragView];
+    
+    PSLogInfo(@"8. dragView.frame = %@",NSStringFromCGRect(dragView.frame));
   }
   
   // MOVE EVENT
   else if (recognizer.state == UIGestureRecognizerStateChanged) {
-    //PSLogInfo(@"state = %u. StateChanged => movement",recognizer.state);
+    PSLogInfo(@"9. state = %u. StateChanged => movement",recognizer.state);
+    PSLogInfo(@"10. dragView.frame = %@",NSStringFromCGRect(dragView.frame));
     
     // move the view to follow the finger's translational motion
     CGPoint translation = [recognizer translationInView:dragView.superview];
     dragView.center = CGPointMake(dragView.center.x + translation.x,
                                   dragView.center.y + translation.y);
     [recognizer setTranslation:CGPointMake(0, 0) inView:dragView.superview];
+    PSLogInfo(@"11. dragView.frame = %@",NSStringFromCGRect(dragView.frame));
+    
   }
   
   // DROP EVENT
@@ -108,18 +130,27 @@ static MCKDragDropServer* sharedServer = nil;
     PSLogInfo(@"theView.frame=%@",NSStringFromCGRect(dragView.frame));
     
     UIView * absorberView = [self firstAbsorberOfView:dragView];
-    NSObject <MCKDragDropAbsorber> * absorberDelegate = [self delegateForAbsorberView:dragView];
-    
+    NSObject <MCKDragDropAbsorberDelegate> * absorberDelegate = [self delegateForAbsorberView:absorberView];
     UIView * donorView = recognizer.donorView;
-    NSObject <MCKDragDropDonor>  * donorDelegate = [self delegateForDonorView:donorView];
-    
-    BOOL absorberAcceptedDrop = YES; // Absorbers default to absorbing
-    if (absorberView &&
-        [absorberDelegate respondsToSelector:@selector(absorberView:canAbsorbDraggingView:)]) {
-      absorberAcceptedDrop = [absorberDelegate absorberView:absorberView canAbsorbDraggingView:dragView];
+    NSObject <MCKDragDropDonorDelegate>  * donorDelegate = [self delegateForDonorView:donorView];
+    id<NSObject> payload = recognizer.payload;
+
+    BOOL dropWasAccepted = NO;
+    if (!absorberView)
+    {
+      dropWasAccepted = NO; // it is required to have an absorber
+      PSLogError(@"no absorberView found for dropped view=%@",dragView);
     }
-    
-    const BOOL dropWasAccepted = absorberView && absorberAcceptedDrop;
+    else {
+      dropWasAccepted = YES; // absorbers default to accepting drops. their delegate can veto it.
+      
+      if (absorberDelegate &&
+          [absorberDelegate respondsToSelector:@selector(absorberView:canAbsorbDraggingView:payload:)]) {
+        dropWasAccepted = [absorberDelegate absorberView:absorberView
+                                   canAbsorbDraggingView:dragView
+                                                 payload:payload];
+      }
+    }
     
     // DROP EVENT : DROP ACCEPTED
     if ( dropWasAccepted ) {
@@ -130,8 +161,10 @@ static MCKDragDropServer* sharedServer = nil;
       recognizer.undoPickupEffectOnView();
       [absorberView motionlessAddSubview:dragView];
       
-      if ([absorberDelegate respondsToSelector:@selector(absorberView:didAbsorbDraggingView:)])
-        [absorberDelegate absorberView:absorberView didAbsorbDraggingView:dragView];
+      if ([absorberDelegate respondsToSelector:@selector(absorberView:didAbsorbDraggingView:payload:)])
+        [absorberDelegate absorberView:absorberView
+                 didAbsorbDraggingView:dragView
+                               payload:payload];
       
       if ([donorDelegate respondsToSelector:@selector(donorView:didDonateDraggingView:)])
         [donorDelegate donorView:donorView didDonateDraggingView:dragView];
@@ -139,7 +172,7 @@ static MCKDragDropServer* sharedServer = nil;
     
     // DROP EVENT : DROP REJECTED
     else {
-      PSLogInfo(@"absorber rejected the drop");
+      PSLogInfo(@"absorber rejected the drop, or there was no absorber.");
       
       // animate slide-back to original position ...
       dispatch_block_t UndoPickupEffects = recognizer.undoPickupEffectOnView;
@@ -165,7 +198,7 @@ static MCKDragDropServer* sharedServer = nil;
     }
   }
   else {
-    PSLogInfo(@"state unrecognized");
+    PSLogInfo(@"UIGestureRecognizerState unrecognized=%u",recognizer.state);
   }
 }
 
@@ -173,9 +206,10 @@ static MCKDragDropServer* sharedServer = nil;
  Finds the donor UIView of the pickedUpView.
  
  @param pickedUpView the view just picked up by the user
+ @return the pickedUpView's donor, or nil if there is none.
  
- The Donor view for a DnD session is the closest ancestor of pickedUpView that 
- has been designated as a donor via a call to registerDonorView:delegate:
+ The Donor view for a DnD session is the closest ancestor of pickedUpView which 
+ has has been designated as a donor via a call to registerDonorView:delegate:.
  */
 -(UIView*) donorViewOfView:(UIView*)pickedUpView
 {
@@ -185,7 +219,12 @@ static MCKDragDropServer* sharedServer = nil;
     if ( [self isDesignatedDonorView:retval] )
       break;
   }
-  PSLogInfo(@"search found donor = %@",retval);
+
+  if (retval)
+    PSLogInfo(@"search found donor = %@",retval);
+  else
+    PSLogError(@"did not find a donor for view=%@",pickedUpView);
+  
   return retval;
 }
 
@@ -193,18 +232,19 @@ static MCKDragDropServer* sharedServer = nil;
  Returns any eligible absorber view beneath the dropped view
  
  @param justDroppedView view being dropped
+ @return the eligible absorber view for the drop, or nil if none was found.
 
- A view is designated as an absorber if it has been registered as such via a
- call to registerAbsorberView:delegate:. The eligible absorber view, for a given
- drop, is just the first hit test view under the center of the dropped view
- that is also a designated absorber.
+ The eligible absorber view, for a given drop, is just the first hit test view 
+ under the center of the dropped view that is also a designated absorber. A 
+ view is designated as an absorber if it has been registered as such via a
+ call to registerAbsorberView:delegate:.
  
- A hit test view must be not hidden, in its superview's bounds, and have 
- userInteractionEnabled. The first hit test view is view meeting those criteria
+ A hit test view must be unhidden, in its superview's bounds, and have
+ userInteractionEnabled. The first hit test view is the view meeting those criteria
  that is deepest in view hierarchy. In short, this function traverses possible 
- dropped-on viewss using the same traversal rule as
+ dropped-on views using the same traversal rule as
  -(UIView*)[UIView hitTest:withEvent:, searching for the first candidate that
- has also been designated as a donor.
+ has also been designated as an absorber.
  
  */
 -(UIView*) firstAbsorberOfView:(UIView*)justDroppedView {
@@ -229,7 +269,11 @@ static MCKDragDropServer* sharedServer = nil;
   [viewsToUnhide enumerateObjectsUsingBlock:
    ^(id obj, NSUInteger idx, BOOL *stop) { [obj setHidden:NO]; }];
   
-  PSLogInfo(@"search found absorber = %@",retval);
+  if (retval)
+    PSLogInfo(@"search found absorber = %@",retval);
+  else
+    PSLogError(@"could not find an absorber for dropped view = %@",justDroppedView);
+
   return retval;
 }
 
@@ -279,18 +323,19 @@ static MCKDragDropServer* sharedServer = nil;
 }
 
 
-/* The following three methods implement a dictionary from views to their 
- delegates. Using associated objects, rather than dictionary, so that we don't 
- need to do housekeeping on the dictionary to handle keys
- going invalid when views disappear.
+/* The following three methods implement a dictionary from views to their delegates. I'm using 
+ associated objects rather than dictionary to avoid implementing housekeeping on the dictionary
+ for when keys going invalid when views disappear.
  */
 static char donorKey;
--(void) registerDonorView:(UIView*)view delegate:(NSObject<MCKDragDropDonor>*)delegate
+-(void) registerDonorView:(UIView*)view delegate:(NSObject<MCKDragDropDonorDelegate>*)delegate
 {
-  objc_setAssociatedObject(view, &donorKey, delegate, OBJC_ASSOCIATION_ASSIGN);
+  if ( view )
+    objc_setAssociatedObject(view, &donorKey, delegate, OBJC_ASSOCIATION_ASSIGN);
 }
 
--(NSObject<MCKDragDropDonor>*) delegateForDonorView:(UIView*)view {
+-(NSObject<MCKDragDropDonorDelegate>*) delegateForDonorView:(UIView*)view
+{
   return objc_getAssociatedObject(view, &donorKey);
 }
 
@@ -301,17 +346,17 @@ static char donorKey;
 
 
 static char absorberKey;
--(void) registerAbsorberView:(UIView*)view delegate:(NSObject<MCKDragDropAbsorber>*)delegate
+-(void) registerAbsorberView:(UIView*)view delegate:(NSObject<MCKDragDropAbsorberDelegate>*)delegate
 {
-  objc_setAssociatedObject(view, &absorberKey, delegate, OBJC_ASSOCIATION_ASSIGN);
+  if ( view )
+    objc_setAssociatedObject(view, &absorberKey, delegate, OBJC_ASSOCIATION_ASSIGN);
 }
 
--(NSObject<MCKDragDropAbsorber>*) delegateForAbsorberView:(UIView*)view {
+-(NSObject<MCKDragDropAbsorberDelegate>*) delegateForAbsorberView:(UIView*)view {
   return objc_getAssociatedObject(view, &absorberKey);
 }
 
--(BOOL)isDesignatedAbsorberView:(UIView *)view
-{
+-(BOOL)isDesignatedAbsorberView:(UIView *)view {
   return ([self delegateForAbsorberView:view] != nil );
 }
 

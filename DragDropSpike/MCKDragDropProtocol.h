@@ -8,21 +8,26 @@
 
 #import <Foundation/Foundation.h>
 
-/***
- Delegate protocol declaring optional methods to notify Donors and Absorbers
+/**
+ Delegate protocol for declaring optional methods to notify Donors and Absorbers
  of the progress of a drag and drop session.
 
  To make a view drag-and-droppable, or to make it a donor and/or receiver,
  call the registration methods on the MCKDragDropServer singleton instance.
-
  */
 
-
-@protocol MCKDragDropDonor <NSObject>
+@protocol MCKDragDropDonorDelegate <NSObject>
 
 @optional
-/** Tells delegate the user will remove the draggingSubview from the donor */
--(void) donorView:(UIView*)donor willBeginDraggingView:(UIView*)draggingSubview;
+/* Asks delegate whether to allow this drag */
+-(BOOL) donorView:(UIView*)donor shouldBeginDraggingView:(UIView*)draggingSubview;
+
+/** Tells delegate the user will remove the draggingSubview from the donor 
+ @return payload an object that will be retained by the DnD system,
+         made available to the asorber via the MCKDragDropAbsorberDelegate, and
+         released after the drag is ended
+ */
+-(id<NSObject>) donorView:(UIView*)donor willBeginDraggingView:(UIView*)draggingSubview;
 
 // 1. User picks up an object, removing it from Donor's view hierarchy (VH).
 /** Tells delegate the user has removed draggingSubview from the donor */
@@ -43,28 +48,29 @@
   Tells donor draggingSubview was returned after a rejected drop.
   @param donor
   @param draggingSubview
-  Called if an attempted drop was rejected by the absorber. Should probably 
- animate the dropped view back to its original position and restore the state 
- of the donor view to its value before the draggingSubview was picked up.
+  This will be called after the draggedView is re-inserted back into the donor VH.
  */
 -(void) donorView:(UIView*)donor didReclaimDraggingView:(UIView*)draggingSubview;
 @end
 
 
-@protocol MCKDragDropAbsorber <NSObject>
+@protocol MCKDragDropAbsorberDelegate <NSObject>
 
 @optional
 // 2. Absorber view decides if it accepts or rejects the drop (-> A.3 or B.3)
 /**
- Reports if an absorber view will accept the drop of draggingSubview.
+ Reports if an absorber will accept the drop of draggingSubview.
 
  @param absorber a view designated as an absorber, which is the hit test view for
         for a drop event located at the center of the draggingSubview
+
  @param draggingSubview the view dropped
 
- Reports if an absorber view will accept the drop of a view. This method can 
- apply logic that limits the effective valid drop zone of the absorber view, or 
- that accepts the drop of certain views but not others.
+ @param payload data being transported along with the dragged view
+ 
+ This method can apply logic that limits the effective valid drop zone of the 
+ absorber view, that accepts the drop of certain views but not others, or that
+ accepts drops only with certain payloads.
 
  This method will be called on the best candidate absorber view available. The
  best candidate absorber view is whichever view (a) is designated as an absorber 
@@ -77,12 +83,11 @@
  
  If this optional method is not implemented, the DnD framework defaults to 
  assuming the absorber CAN accept the view.
-
- 
- To designate a view as an absorber,
  
  */
--(BOOL) absorberView:(UIView*)absorber canAbsorbDraggingView:(UIView*)draggingSubview;
+-(BOOL)       absorberView:(UIView*)absorber
+     canAbsorbDraggingView:(UIView*)draggingSubview
+                   payload:(id<NSObject>)payload;
 
 // A.4 Absorber receives the donated view
 /**
@@ -90,11 +95,13 @@
 
  @param absorber
  @param draggingSubview
+ @param payload 
 
  Absorber should perform any work necessary after having been given the dropped
- view. Absorber could actually integrate the draggingSubview object directly
- into its own view hierarchy, or it could kill it, replace it with a lookalike,
- etc..
+ view. For example, the absorber could actually integrate the draggingSubview object
+ into its own view hierarchy or it could remove it and replace it with a lookalike.
  */
--(void) absorberView:(UIView*)absorber didAbsorbDraggingView:(UIView*)draggingSubview;
+-(void)     absorberView:(UIView*)absorber
+   didAbsorbDraggingView:(UIView*)draggingSubview
+                 payload:(id<NSObject>)payload;
 @end
