@@ -1,19 +1,43 @@
 #+TITLE: DragDropSpike
 
 It is straightforward to make a UIView draggable by attaching a
-UIPanGestureRecognizer and implementing appropriate logic. However,
+UIPanGestureRecognizer and implementing a callback to update the
+view's position to match the gesture recognizer's position. However,
 you usually want more than this.
 
 This framework provides a bunch of related behaviors we take for
 granted with desktop drag and drop. Namely, it provides the following:
-- removing the dragged object from a "donor" object that originally contains it
-- adding it to an "absorber" object on drop
+- removing the dragged view from a "donor" view that originally contains it
+- adding it to an "absorber" view on drop
 - allowing the absorber to accept/reject the drop
-- animating the dropped object back to its original position if the drop was rejected
+- animating the dropped view back to its original position if the drop was rejected
 - modifying its appearance to distinguish its picked-up from its put-down state
 - conveying information from the donor to the absorber along with the drag and drop
-- providing callbacks so the various objects can update their state
+- providing callbacks so the various view can update their state
   and appearance appropriately during the drag and drop session.
 
+* Usage
 
+A view can be a draggable, a donor, an absorber, or a donor+absorber
+at the same time. In every drag and drop session, a draggable is
+removed from the donor's view hierarchy and possibly added to the
+absorber's view hierarchy. The donor can attach a payload object to
+the draggable. The absorber can reject the drop, triggering a
+slide-back animation.
+
+It is not necessary for any view in the DnD session to adopt any
+protocols or extend any superclass. 
+
+* Notes
+
+Public interface is on MCKDragDropServer.h and MCKDragDropProtocol.h.
+
+You can add 
+
+* related works
+
+- PSPushPopPressView https://github.com/steipete/PSPushPopPressView   
+- dragkit  https://github.com/zac/dragkit/ & http://dragkit.org
+- https://github.com/jaydee3/DroppableView
+- 
 
