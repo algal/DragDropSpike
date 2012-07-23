@@ -1,0 +1,19 @@
+#+TITLE: DragDropSpike
+
+It is straightforward to make a UIView draggable by attaching a
+UIPanGestureRecognizer and implementing appropriate logic. However,
+you usually want more than this.
+
+This framework provides a bunch of related behaviors we take for
+granted with desktop drag and drop. Namely, it provides the following:
+- removing the dragged object from a "donor" object that originally contains it
+- adding it to an "absorber" object on drop
+- allowing the absorber to accept/reject the drop
+- animating the dropped object back to its original position if the drop was rejected
+- modifying its appearance to distinguish its picked-up from its put-down state
+- conveying information from the donor to the absorber along with the drag and drop
+- providing callbacks so the various objects can update their state
+  and appearance appropriately during the drag and drop session.
+
+
+
